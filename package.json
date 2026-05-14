@@ -51,7 +51,8 @@
     "publish": {
       "provider": "github",
       "owner": "Pastorilaine",
-      "repo": "ProjectHub"
+      "repo": "ProjectHub",
+      "releaseType": "release"
     },
     "win": {
       "target": [
