@@ -1,10 +1,12 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron')
-const path = require('path')
-const { electronApp, optimizer, is } = require('@electron-toolkit/utils')
-const db = require('./database')
-const IPC = require('../../shared/ipcChannels')
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { join } from 'path'
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import * as db from './database'
+import IPC from '../../shared/ipcChannels'
 
 function createWindow() {
+  const iconPath = join(app.getAppPath(), 'projecthub.png')
+
   const win = new BrowserWindow({
     width: 1280,
     height: 820,
@@ -13,8 +15,9 @@ function createWindow() {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#0f172a',
+    icon: iconPath,
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: true,
       nodeIntegration: false
@@ -33,7 +36,7 @@ function createWindow() {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    win.loadFile(path.join(__dirname, '../renderer/index.html'))
+    win.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
 

@@ -1,6 +1,6 @@
-const { contextBridge, ipcRenderer } = require('electron')
-const { electronAPI } = require('@electron-toolkit/preload')
-const IPC = require('../../shared/ipcChannels')
+import { contextBridge, ipcRenderer } from 'electron'
+import { electronAPI } from '@electron-toolkit/preload'
+import IPC from '../../shared/ipcChannels'
 
 /**
  * Expose the database API to the renderer via contextBridge.

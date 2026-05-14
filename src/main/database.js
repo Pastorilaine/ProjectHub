@@ -1,13 +1,13 @@
-const Database = require('better-sqlite3')
-const path = require('path')
-const { app } = require('electron')
-const { v4: uuidv4 } = require('uuid')
+import Database from 'better-sqlite3'
+import { join } from 'path'
+import { app } from 'electron'
+import { v4 as uuidv4 } from 'uuid'
 
 let db
 
 function getDb() {
   if (!db) {
-    const dbPath = path.join(app.getPath('userData'), 'projecthub.db')
+    const dbPath = join(app.getPath('userData'), 'projecthub.db')
     db = new Database(dbPath)
     db.pragma('journal_mode = WAL')
     db.pragma('foreign_keys = ON')
@@ -236,7 +236,7 @@ function search(query) {
   return { projects, tasks }
 }
 
-module.exports = {
+export {
   getAllProjects,
   createProject,
   updateProject,

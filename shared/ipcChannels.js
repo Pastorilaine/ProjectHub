@@ -25,4 +25,4 @@ const IPC = {
   SEARCH: 'db:search'
 }
 
-module.exports = IPC
+export default IPC
