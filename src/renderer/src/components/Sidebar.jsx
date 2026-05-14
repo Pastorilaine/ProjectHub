@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+
 export default function Sidebar({
   projects,
   selectedProject,
@@ -8,6 +10,23 @@ export default function Sidebar({
 }) {
   const active = projects.filter((p) => p.status === 'active')
   const archived = projects.filter((p) => p.status !== 'active')
+  const [version, setVersion] = useState('')
+  const [checking, setChecking] = useState(false)
+
+  useEffect(() => {
+    window.api?.getAppVersion?.().then((v) => setVersion(v)).catch(() => {})
+  }, [])
+
+  const handleCheckUpdate = async () => {
+    if (checking) return
+    setChecking(true)
+    try {
+      await window.api?.checkForUpdates?.()
+    } finally {
+      // The UpdateBanner takes over from here via IPC events; reset button after delay
+      setTimeout(() => setChecking(false), 3000)
+    }
+  }
 
   return (
     <aside className="w-56 flex-shrink-0 bg-slate-950 border-r border-slate-800 flex flex-col h-full">
@@ -89,8 +108,26 @@ export default function Sidebar({
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-slate-800 text-xs text-slate-600">
-        IT-Veljekset Group
+      <div className="px-4 py-3 border-t border-slate-800 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-slate-600">IT-Veljekset Group</span>
+          {version && <span className="text-xs text-slate-700">v{version}</span>}
+        </div>
+        <button
+          onClick={handleCheckUpdate}
+          disabled={checking}
+          className="w-full flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {checking ? (
+            <span className="w-3 h-3 rounded-full border border-slate-500 border-t-transparent animate-spin flex-shrink-0" />
+          ) : (
+            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          )}
+          {checking ? 'Tarkistetaan…' : 'Tarkista päivitykset'}
+        </button>
       </div>
     </aside>
   )

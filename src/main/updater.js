@@ -11,6 +11,7 @@ import { autoUpdater } from 'electron-updater'
 import { is } from '@electron-toolkit/utils'
 
 let mainWindow = null
+let ready = false  // true once initAutoUpdater has run in a packaged app
 
 export function initAutoUpdater(win) {
   mainWindow = win
@@ -20,12 +21,15 @@ export function initAutoUpdater(win) {
     return
   }
 
+  ready = true
+
   // Download silently in the background; don't show the default dialog
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
 
   autoUpdater.on('checking-for-update', () => {
     console.log('[updater] Checking for update…')
+    send('update:checking', {})
   })
 
   autoUpdater.on('update-available', (info) => {
@@ -35,6 +39,7 @@ export function initAutoUpdater(win) {
 
   autoUpdater.on('update-not-available', () => {
     console.log('[updater] App is up to date')
+    send('update:notAvailable', {})
   })
 
   autoUpdater.on('download-progress', (progress) => {
@@ -65,6 +70,20 @@ export function initAutoUpdater(win) {
  */
 export function installUpdate() {
   autoUpdater.quitAndInstall(false, true)
+}
+
+/**
+ * Manually triggered update check (from the renderer's "Tarkista päivitykset" button).
+ * No-op in dev mode.
+ */
+export function checkForUpdates() {
+  if (!ready) {
+    console.log('[updater] checkForUpdates called but updater not initialised (dev mode)')
+    return
+  }
+  autoUpdater.checkForUpdates().catch((err) => {
+    console.error('[updater] Manual check failed:', err.message)
+  })
 }
 
 function send(channel, data) {

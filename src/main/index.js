@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import * as db from './database'
 import IPC from '../../shared/ipcChannels'
-import { initAutoUpdater, installUpdate } from './updater'
+import { initAutoUpdater, installUpdate, checkForUpdates } from './updater'
 import { startDeadlineChecker } from './notifications'
 
 // ── Single-instance lock ───────────────────────────────────────────────────────
@@ -178,6 +178,10 @@ app.whenReady().then(() => {
 
   // ── Auto-updater ──────────────────────────────────────────────────────────
   ipcMain.handle(IPC.UPDATE_INSTALL, () => installUpdate())
+  ipcMain.handle(IPC.UPDATE_CHECK, () => checkForUpdates())
+
+  // ── App info ───────────────────────────────────────────────────────────────
+  ipcMain.handle(IPC.APP_GET_VERSION, () => app.getVersion())
 
   createWindow()
   createTray()

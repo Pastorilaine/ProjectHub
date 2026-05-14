@@ -25,7 +25,11 @@ const IPC = {
   SEARCH: 'db:search',
 
   // Auto-updater (renderer → main)
-  UPDATE_INSTALL: 'update:install'
+  UPDATE_INSTALL: 'update:install',
+  UPDATE_CHECK: 'update:check',
+
+  // App info
+  APP_GET_VERSION: 'app:getVersion'
 }
 
 export default IPC

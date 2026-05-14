@@ -1,17 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 /**
  * Banner that appears when a background auto-update is available/downloading/downloaded.
- * Listens to IPC events pushed from the main process via window.api.on* helpers.
+ * Also handles the manual "Tarkista päivitykset" flow triggered from the Sidebar.
+ * State machine: null → checking → notAvailable (auto-clears) | available → downloading → downloaded
  */
 export default function UpdateBanner() {
   const [info, setInfo] = useState(null)
-  // info: null | { state: 'available'|'downloading'|'downloaded', version, percent }
+  const clearTimer = useRef(null)
+
+  // Auto-clear transient states after a timeout
+  const autoClose = (ms = 4000) => {
+    if (clearTimer.current) clearTimeout(clearTimer.current)
+    clearTimer.current = setTimeout(() => setInfo(null), ms)
+  }
 
   useEffect(() => {
     if (!window.api?.onUpdateAvailable) return
 
+    const cleanChecking = window.api.onUpdateChecking?.(() => {
+      setInfo({ state: 'checking' })
+    })
+
+    const cleanNotAvailable = window.api.onUpdateNotAvailable?.(() => {
+      setInfo({ state: 'notAvailable' })
+      autoClose(3000)
+    })
+
     const cleanAvailable = window.api.onUpdateAvailable((data) => {
+      if (clearTimer.current) clearTimeout(clearTimer.current)
       setInfo({ state: 'available', version: data.version, percent: 0 })
     })
 
@@ -20,21 +37,42 @@ export default function UpdateBanner() {
     })
 
     const cleanDownloaded = window.api.onUpdateDownloaded((data) => {
+      if (clearTimer.current) clearTimeout(clearTimer.current)
       setInfo({ state: 'downloaded', version: data.version, percent: 100 })
     })
 
     return () => {
+      cleanChecking?.()
+      cleanNotAvailable?.()
       cleanAvailable?.()
       cleanProgress?.()
       cleanDownloaded?.()
+      if (clearTimer.current) clearTimeout(clearTimer.current)
     }
   }, [])
 
   if (!info) return null
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-blue-900/90 border-b border-blue-700/60 text-sm text-blue-100 flex-shrink-0">
+    <div
+      className={`flex items-center justify-between px-4 py-2 border-b text-sm flex-shrink-0 transition-colors ${
+        info.state === 'notAvailable'
+          ? 'bg-green-900/70 border-green-700/60 text-green-100'
+          : 'bg-blue-900/90 border-blue-700/60 text-blue-100'
+      }`}
+    >
       <div className="flex items-center gap-3 flex-1 min-w-0">
+        {info.state === 'checking' && (
+          <span className="flex items-center gap-2 truncate">
+            <span className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
+            Tarkistetaan päivityksiä…
+          </span>
+        )}
+
+        {info.state === 'notAvailable' && (
+          <span className="truncate">✓ Sovellus on ajan tasalla</span>
+        )}
+
         {info.state === 'available' && (
           <span className="truncate">
             🔄 Uusi versio <strong>{info.version}</strong> saatavilla — ladataan taustalla…
@@ -69,9 +107,12 @@ export default function UpdateBanner() {
       </div>
 
       <button
-        onClick={() => setInfo(null)}
-        className="ml-4 text-blue-400 hover:text-blue-200 text-lg leading-none flex-shrink-0"
-        title="Sulje ilmoitus"
+        onClick={() => {
+          if (clearTimer.current) clearTimeout(clearTimer.current)
+          setInfo(null)
+        }}
+        className="ml-4 text-lg leading-none flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+        title="Sulje"
       >
         ×
       </button>

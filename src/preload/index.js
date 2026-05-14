@@ -31,12 +31,28 @@ const api = {
   // Auto-updater — install the downloaded update
   installUpdate: () => ipcRenderer.invoke(IPC.UPDATE_INSTALL),
 
+  // Auto-updater — manually trigger a check
+  checkForUpdates: () => ipcRenderer.invoke(IPC.UPDATE_CHECK),
+
+  // App info
+  getAppVersion: () => ipcRenderer.invoke(IPC.APP_GET_VERSION),
+
   // Auto-updater — push events from main to renderer
   // Each returns a cleanup function to remove the listener.
+  onUpdateChecking: (cb) => {
+    const fn = (_, data) => cb(data)
+    ipcRenderer.on('update:checking', fn)
+    return () => ipcRenderer.removeListener('update:checking', fn)
+  },
   onUpdateAvailable: (cb) => {
     const fn = (_, data) => cb(data)
     ipcRenderer.on('update:available', fn)
     return () => ipcRenderer.removeListener('update:available', fn)
+  },
+  onUpdateNotAvailable: (cb) => {
+    const fn = (_, data) => cb(data)
+    ipcRenderer.on('update:notAvailable', fn)
+    return () => ipcRenderer.removeListener('update:notAvailable', fn)
   },
   onUpdateProgress: (cb) => {
     const fn = (_, data) => cb(data)
