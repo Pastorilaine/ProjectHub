@@ -103,7 +103,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 text-slate-100">
+    <div className="flex flex-col h-full text-slate-100" style={{ background: '#060A12' }}>
       <UpdateBanner />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
@@ -118,7 +118,7 @@ export default function App() {
           activeView={view}
         />
 
-        <main className="flex-1 overflow-hidden flex flex-col min-w-0">
+        <main className="flex-1 overflow-hidden flex flex-col min-w-0" style={{ background: '#0A0F1C' }}>
           {view === 'dashboard' && (
             <DashboardPage
               onOpenProject={openProject}

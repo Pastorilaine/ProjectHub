@@ -32,120 +32,122 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-slate-950 border-r border-slate-800 flex flex-col h-full">
-      {/* App title */}
-      <div
-        className="drag-region px-4 py-4 border-b border-slate-800 flex items-center gap-2 cursor-pointer select-none no-drag"
-        onClick={onGoHome}
-      >
-        <div className="w-6 h-6 rounded bg-blue-500 flex items-center justify-center text-xs font-bold">
-          P
+    <aside className="w-60 flex-shrink-0 flex flex-col h-full" style={{ background: '#060A12', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+      {/* App title — also acts as drag region for the frameless window */}
+      <div className="drag-region h-12 px-4 flex items-center gap-2.5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="no-drag flex items-center gap-2.5 cursor-pointer" onClick={onGoHome}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}>
+            P
+          </div>
+          <span className="font-semibold text-sm text-white tracking-tight">ProjectHub</span>
         </div>
-        <span className="font-semibold text-sm text-white">ProjectHub</span>
       </div>
 
       {/* Search */}
       <div className="px-3 pt-3">
         <button
           onClick={onOpenSearch}
-          className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs transition-colors no-drag"
+          className="no-drag w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 text-xs transition-all"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          <span>Haku</span>
-          <kbd className="ml-auto text-slate-600 text-xs">⌘K</kbd>
+          <span className="flex-1 text-left">Haku</span>
+          <kbd className="text-slate-700 text-xs font-mono">⌘K</kbd>
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 pt-4 pb-2 space-y-4">
+      <nav className="no-drag flex-1 overflow-y-auto px-2 pt-4 pb-2">
         {/* Dashboard */}
-        <button
+        <NavItem
+          icon={
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          }
+          label="Yleiskatsaus"
+          active={activeView === 'dashboard'}
           onClick={onGoHome}
-          className={`w-full text-left flex items-center gap-2.5 px-2 py-1.5 rounded-md text-xs transition-colors ${
-            activeView === 'dashboard'
-              ? 'bg-slate-700 text-white'
-              : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-          }`}
-        >
-          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          Yleiskatsaus
-        </button>
+        />
 
-        {/* Active projects */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
+        {/* Projects section */}
+        <div className="mt-5 mb-1 px-2">
+          <div className="flex items-center justify-between">
             <button
               onClick={onOpenProjects}
-              className={`text-xs font-medium uppercase tracking-wider transition-colors ${
-                activeView === 'projects'
-                  ? 'text-blue-400'
-                  : 'text-slate-500 hover:text-slate-300'
+              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${
+                activeView === 'projects' ? 'text-blue-400' : 'text-slate-600 hover:text-slate-400'
               }`}
             >
               Projektit
             </button>
             <button
               onClick={onNewProject}
-              className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
+              className="w-5 h-5 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-300 transition-colors"
+              style={{ background: 'rgba(255,255,255,0.04)' }}
               title="Uusi projekti"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </button>
           </div>
+        </div>
 
-          {active.length === 0 && (
-            <p className="text-xs text-slate-600 px-2 py-1">Ei projekteja</p>
-          )}
+        {active.length === 0 && (
+          <p className="text-xs text-slate-700 px-2 py-1.5 italic">Ei projekteja vielä</p>
+        )}
 
+        <div className="mt-1 space-y-0.5">
           {active.map((project) => (
             <SidebarProjectItem
               key={project.id}
               project={project}
-              isSelected={selectedProject?.id === project.id}
+              isSelected={selectedProject?.id === project.id && activeView === 'project-detail'}
               onClick={() => onSelectProject(project)}
             />
           ))}
         </div>
 
-        {/* Archived projects */}
+        {/* Archived */}
         {archived.length > 0 && (
-          <div>
-            <span className="text-xs font-medium text-slate-600 uppercase tracking-wider block mb-1">
-              Arkisto
-            </span>
-            {archived.map((project) => (
-              <SidebarProjectItem
-                key={project.id}
-                project={project}
-                isSelected={selectedProject?.id === project.id}
-                onClick={() => onSelectProject(project)}
-                muted
-              />
-            ))}
+          <div className="mt-5">
+            <div className="px-2 mb-1">
+              <span className="text-xs font-semibold uppercase tracking-widest text-slate-700">Arkisto</span>
+            </div>
+            <div className="space-y-0.5">
+              {archived.map((project) => (
+                <SidebarProjectItem
+                  key={project.id}
+                  project={project}
+                  isSelected={selectedProject?.id === project.id && activeView === 'project-detail'}
+                  onClick={() => onSelectProject(project)}
+                  muted
+                />
+              ))}
+            </div>
           </div>
         )}
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-3 border-t border-slate-800">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs text-slate-600 flex-1">IT-Veljekset Group</span>
-          {version && <span className="text-xs text-slate-700">v{version}</span>}
-          {/* Settings button */}
+      <div className="no-drag px-3 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="flex items-center gap-2 mb-2.5">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-slate-500 truncate">IT-Veljekset Group</p>
+            {version && <p className="text-xs text-slate-700">v{version}</p>}
+          </div>
           <button
             onClick={onOpenSettings}
             title="Asetukset"
-            className={`p-1 rounded transition-colors ${
+            className={`p-1.5 rounded-lg transition-all ${
               activeView === 'settings'
-                ? 'text-blue-400 bg-slate-800'
-                : 'text-slate-600 hover:text-slate-300 hover:bg-slate-800'
+                ? 'text-blue-400 bg-blue-500/10'
+                : 'text-slate-600 hover:text-slate-300 hover:bg-white/5'
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +160,7 @@ export default function Sidebar({
         <button
           onClick={handleCheckUpdate}
           disabled={checking}
-          className="w-full flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-700 hover:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-white/5"
         >
           {checking ? (
             <span className="w-3 h-3 rounded-full border border-slate-500 border-t-transparent animate-spin flex-shrink-0" />
@@ -175,30 +177,55 @@ export default function Sidebar({
   )
 }
 
+function NavItem({ icon, label, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-xs font-medium transition-all group relative ${
+        active
+          ? 'text-white'
+          : 'text-slate-500 hover:text-slate-200'
+      }`}
+      style={active ? { background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.2)' } : {}}
+    >
+      {active && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-blue-400" />
+      )}
+      <span className={`flex-shrink-0 transition-colors ${active ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400'}`}>
+        {icon}
+      </span>
+      {label}
+    </button>
+  )
+}
+
 function SidebarProjectItem({ project, isSelected, onClick, muted }) {
   const total = project.task_count || 0
   const done = project.done_count || 0
-  const progress = total > 0 ? Math.round((done / total) * 100) : 0
 
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left flex items-center gap-2.5 px-2 py-1.5 rounded-md text-xs transition-colors mb-0.5 group ${
+      className={`w-full text-left flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-xs transition-all group relative ${
         isSelected
-          ? 'bg-slate-700 text-white'
+          ? 'text-white'
           : muted
-          ? 'text-slate-600 hover:bg-slate-800 hover:text-slate-400'
-          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+          ? 'text-slate-700 hover:text-slate-400'
+          : 'text-slate-400 hover:text-slate-200'
       }`}
+      style={isSelected ? { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' } : {}}
     >
+      {isSelected && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3.5 rounded-r-full" style={{ backgroundColor: project.color || '#3B82F6' }} />
+      )}
       <span
-        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-        style={{ backgroundColor: project.color || '#3B82F6' }}
+        className="w-2 h-2 rounded-full flex-shrink-0"
+        style={{ backgroundColor: project.color || '#3B82F6', opacity: muted ? 0.4 : 1 }}
       />
       <span className="truncate flex-1">{project.name}</span>
       {total > 0 && (
-        <span className="text-slate-600 text-xs flex-shrink-0 group-hover:text-slate-500">
-          {done}/{total}
+        <span className={`text-xs flex-shrink-0 tabular-nums ${isSelected ? 'text-slate-400' : 'text-slate-700 group-hover:text-slate-600'}`}>
+          {`${done}/${total}`}
         </span>
       )}
     </button>

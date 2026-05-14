@@ -30,16 +30,24 @@ const PRIORITY_LABELS = {
   low: 'Matala'
 }
 
-function StatCard({ label, value, color, icon }) {
+function StatCard({ label, value, gradient, icon, alert }) {
   return (
-    <div className="bg-slate-800 rounded-xl p-5 flex items-center gap-4">
-      <div className={`w-11 h-11 rounded-lg flex items-center justify-center ${color}`}>
+    <div
+      className="rounded-2xl p-5 flex items-center gap-4 relative overflow-hidden"
+      style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${alert ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.07)'}` }}
+    >
+      <div
+        className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: gradient }}
+      >
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+        <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{label}</p>
       </div>
+      {/* Subtle glow */}
+      <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full opacity-10 pointer-events-none" style={{ background: gradient }} />
     </div>
   )
 }
@@ -80,18 +88,19 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
   const { activeProjects, openTasks, inProgress, overdue, upcoming, recentProjects } = stats
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8">
+    <div className="p-7 max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Yleiskatsaus</h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <h1 className="text-2xl font-bold text-white tracking-tight">Yleiskatsaus</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
             {new Date().toLocaleDateString('fi-FI', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <button
           onClick={onNewProject}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all hover:opacity-90 active:scale-95"
+          style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -101,13 +110,13 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard
           label="Aktiiviset projektit"
           value={activeProjects}
-          color="bg-blue-600/20"
+          gradient="linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)"
           icon={
-            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
             </svg>
           }
@@ -115,9 +124,9 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
         <StatCard
           label="Avoimet tehtävät"
           value={openTasks}
-          color="bg-purple-600/20"
+          gradient="linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%)"
           icon={
-            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           }
@@ -125,9 +134,9 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
         <StatCard
           label="Käynnissä"
           value={inProgress}
-          color="bg-amber-600/20"
+          gradient="linear-gradient(135deg, #B45309 0%, #D97706 100%)"
           icon={
-            <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           }
@@ -135,14 +144,18 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
         <StatCard
           label="Myöhässä"
           value={overdue}
-          color={overdue > 0 ? 'bg-red-600/20' : 'bg-green-600/20'}
+          alert={overdue > 0}
+          gradient={overdue > 0
+            ? "linear-gradient(135deg, #991B1B 0%, #DC2626 100%)"
+            : "linear-gradient(135deg, #065F46 0%, #059669 100%)"
+          }
           icon={
             overdue > 0 ? (
-              <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
             ) : (
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )
@@ -151,11 +164,11 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
       </div>
 
       {/* Main content: upcoming + recent */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Upcoming deadlines */}
-        <div className="bg-slate-800 rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-            <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <h2 className="text-xs font-semibold text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
+            <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Lähestyvät määräajat
@@ -203,9 +216,9 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
         </div>
 
         {/* Recent projects */}
-        <div className="bg-slate-800 rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <h2 className="text-xs font-semibold text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
+            <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
             </svg>
             Viimeisimmät projektit
