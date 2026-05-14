@@ -37,6 +37,10 @@ const api = {
   // App info
   getAppVersion: () => ipcRenderer.invoke(IPC.APP_GET_VERSION),
 
+  // User settings
+  getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
+  saveSettings: (data) => ipcRenderer.invoke(IPC.SETTINGS_SAVE, data),
+
   // Auto-updater — push events from main to renderer
   // Each returns a cleanup function to remove the listener.
   onUpdateChecking: (cb) => {

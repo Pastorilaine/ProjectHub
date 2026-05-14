@@ -245,9 +245,9 @@ function search(query) {
  * the next 24 h (due today / tomorrow), excluding already-done tasks.
  * Called by notifications.js.
  */
-export function getUpcomingDeadlineTasks() {
+export function getUpcomingDeadlineTasks(hours = 24) {
   const now = Date.now()
-  const oneDayMs = 24 * 60 * 60 * 1000
+  const windowMs = hours * 60 * 60 * 1000
   return getDb()
     .prepare(
       `SELECT t.title, t.due_date, p.name AS project_name
@@ -258,7 +258,7 @@ export function getUpcomingDeadlineTasks() {
          AND t.due_date > ?
          AND t.due_date <= ?`
     )
-    .all(now - oneDayMs, now + oneDayMs)
+    .all(now - windowMs, now + windowMs)
 }
 
 export {

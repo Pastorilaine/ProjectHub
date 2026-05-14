@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './components/Sidebar'
 import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
+import SettingsPage from './pages/SettingsPage'
 import SearchModal from './components/SearchModal'
 import CreateProjectModal from './components/CreateProjectModal'
 import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
-  const [view, setView] = useState('projects') // 'projects' | 'project-detail'
+  const [view, setView] = useState('projects') // 'projects' | 'project-detail' | 'settings'
   const [projects, setProjects] = useState([])
   const [selectedProject, setSelectedProject] = useState(null)
   const [tags, setTags] = useState([])
@@ -101,6 +102,8 @@ export default function App() {
           onGoHome={goHome}
           onOpenSearch={() => setShowSearch(true)}
           onNewProject={() => setShowCreateProject(true)}
+          onOpenSettings={() => setView('settings')}
+          activeView={view}
         />
 
         <main className="flex-1 overflow-hidden flex flex-col min-w-0">
@@ -121,6 +124,9 @@ export default function App() {
               onProjectDeleted={handleProjectDeleted}
               onTagsChanged={loadTags}
             />
+          )}
+          {view === 'settings' && (
+            <SettingsPage onBack={goHome} />
           )}
         </main>
       </div>

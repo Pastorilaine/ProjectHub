@@ -6,6 +6,7 @@
 
 import { Notification } from 'electron'
 import { getUpcomingDeadlineTasks } from './database'
+import { getSettings } from './settings'
 
 let timer = null
 
@@ -23,10 +24,12 @@ export function stopDeadlineChecker() {
 }
 
 function checkDeadlines() {
+  const settings = getSettings()
+  if (!settings.deadlineNotifications) return
   if (!Notification.isSupported()) return
 
   try {
-    const tasks = getUpcomingDeadlineTasks()
+    const tasks = getUpcomingDeadlineTasks(settings.notificationAdvanceHours)
     const now = Date.now()
 
     for (const task of tasks) {

@@ -29,7 +29,11 @@ const IPC = {
   UPDATE_CHECK: 'update:check',
 
   // App info
-  APP_GET_VERSION: 'app:getVersion'
+  APP_GET_VERSION: 'app:getVersion',
+
+  // User settings
+  SETTINGS_GET: 'app:settings:get',
+  SETTINGS_SAVE: 'app:settings:save'
 }
 
 export default IPC

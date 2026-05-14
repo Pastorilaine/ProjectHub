@@ -6,6 +6,7 @@ import * as db from './database'
 import IPC from '../../shared/ipcChannels'
 import { initAutoUpdater, installUpdate, checkForUpdates } from './updater'
 import { startDeadlineChecker } from './notifications'
+import { getSettings, saveSettings } from './settings'
 
 // ── Single-instance lock ───────────────────────────────────────────────────────
 // Prevent multiple instances of the app running at the same time.
@@ -114,10 +115,10 @@ function createWindow() {
     if (!win.isMaximized() && !win.isMinimized()) savedBounds = win.getBounds()
   })
 
-  // Minimize to tray on close instead of quitting
+  // Minimize to tray on close (if setting enabled) instead of quitting
   win.on('close', (e) => {
     saveWindowState()
-    if (!isQuitting) {
+    if (!isQuitting && getSettings().minimizeToTray) {
       e.preventDefault()
       win.hide()
     }
@@ -182,6 +183,17 @@ app.whenReady().then(() => {
 
   // ── App info ───────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.APP_GET_VERSION, () => app.getVersion())
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  ipcMain.handle(IPC.SETTINGS_GET, () => getSettings())
+  ipcMain.handle(IPC.SETTINGS_SAVE, (_, partial) => {
+    const next = saveSettings(partial)
+    // Apply side-effects immediately
+    if ('launchAtStartup' in partial) {
+      app.setLoginItemSettings({ openAtLogin: next.launchAtStartup })
+    }
+    return next
+  })
 
   createWindow()
   createTray()
