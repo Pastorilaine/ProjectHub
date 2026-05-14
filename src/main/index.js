@@ -185,7 +185,11 @@ app.whenReady().then(() => {
   // ── Dashboard ─────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.DASHBOARD_STATS, () => db.getDashboardStats())
   // ── Auto-updater ──────────────────────────────────────────────────────────
-  ipcMain.handle(IPC.UPDATE_INSTALL, () => installUpdate())
+  ipcMain.handle(IPC.UPDATE_INSTALL, () => {
+    // Force actual quit so minimizeToTray won't intercept the close
+    isQuitting = true
+    installUpdate()
+  })
   ipcMain.handle(IPC.UPDATE_CHECK, () => checkForUpdates())
 
   // ── App info ───────────────────────────────────────────────────────────────

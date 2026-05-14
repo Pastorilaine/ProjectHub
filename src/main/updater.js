@@ -70,7 +70,9 @@ export function initAutoUpdater(win) {
  * Will quit the app and relaunch after installing.
  */
 export function installUpdate() {
-  autoUpdater.quitAndInstall(false, true)
+  // isSilent=true  → runs NSIS with /S flag, no wizard dialog
+  // isForceRunAfter=true → relaunches the app after install completes
+  autoUpdater.quitAndInstall(true, true)
 }
 
 /**
