@@ -31,6 +31,9 @@ const IPC = {
   // App info
   APP_GET_VERSION: 'app:getVersion',
 
+  // Dashboard
+  DASHBOARD_STATS: 'db:dashboard:stats',
+
   // User settings
   SETTINGS_GET: 'app:settings:get',
   SETTINGS_SAVE: 'app:settings:save'

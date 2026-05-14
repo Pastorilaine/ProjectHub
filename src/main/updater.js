@@ -53,7 +53,8 @@ export function initAutoUpdater(win) {
 
   autoUpdater.on('error', (err) => {
     console.error('[updater] Error:', err.message)
-    // Don't surface error to user — silent background updater
+    // Dismiss the "checking" banner — without this the spinner loops forever
+    send('update:notAvailable', {})
   })
 
   // Check after 3 s so the window has time to open first

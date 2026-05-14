@@ -20,6 +20,8 @@ export default function UpdateBanner() {
 
     const cleanChecking = window.api.onUpdateChecking?.(() => {
       setInfo({ state: 'checking' })
+      // Safety net: if no response in 12 s, dismiss the spinner
+      autoClose(12000)
     })
 
     const cleanNotAvailable = window.api.onUpdateNotAvailable?.(() => {

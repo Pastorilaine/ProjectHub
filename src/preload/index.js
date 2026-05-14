@@ -28,6 +28,9 @@ const api = {
   // Search
   search: (query) => ipcRenderer.invoke(IPC.SEARCH, query),
 
+  // Dashboard
+  getDashboardStats: () => ipcRenderer.invoke(IPC.DASHBOARD_STATS),
+
   // Auto-updater — install the downloaded update
   installUpdate: () => ipcRenderer.invoke(IPC.UPDATE_INSTALL),
 

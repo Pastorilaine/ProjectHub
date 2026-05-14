@@ -20,6 +20,14 @@ export default function ProjectDetailPage({
   const [loading, setLoading] = useState(true)
   const [showEdit, setShowEdit] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [notes, setNotes] = useState(project.notes || '')
+  const [notesOpen, setNotesOpen] = useState(Boolean(project.notes))
+  const [notesSaving, setNotesSaving] = useState(false)
+  const [notesSaved, setNotesSaved] = useState(false)
+
+  useEffect(() => {
+    setNotes(project.notes || '')
+  }, [project.notes])
 
   const loadTasks = useCallback(async () => {
     try {
@@ -49,6 +57,28 @@ export default function ProjectDetailPage({
   const handleProjectSaved = async (updated) => {
     setShowEdit(false)
     onProjectUpdated(updated)
+  }
+
+  const handleNotesSave = async () => {
+    const trimmed = notes.trim()
+    try {
+      setNotesSaving(true)
+      const updated = await window.api.updateProject({
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        color: project.color,
+        status: project.status,
+        notes: trimmed || null
+      })
+      onProjectUpdated(updated)
+      setNotesSaved(true)
+      setTimeout(() => setNotesSaved(false), 2000)
+    } catch (err) {
+      console.error('[ProjectDetailPage] notes save failed:', err)
+    } finally {
+      setNotesSaving(false)
+    }
   }
 
   const total = tasks.length
@@ -146,6 +176,34 @@ export default function ProjectDetailPage({
             )}
           </div>
         </div>
+      </div>
+
+      {/* Notes collapsible */}
+      <div className="flex-shrink-0 border-b border-slate-800 px-6">
+        <button
+          onClick={() => setNotesOpen((v) => !v)}
+          className="flex items-center gap-2 py-2 text-xs text-slate-500 hover:text-slate-300 w-full text-left transition-colors"
+        >
+          <svg
+            className={`w-3 h-3 transition-transform ${notesOpen ? 'rotate-90' : ''}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          Muistiinpanot
+          {notesSaving && <span className="ml-2 text-slate-600">Tallennetaan...</span>}
+          {notesSaved && <span className="ml-2 text-green-500">Tallennettu \u2713</span>}
+        </button>
+        {notesOpen && (
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={handleNotesSave}
+            placeholder="Kirjoita muistiinpanoja projektista..."
+            rows={3}
+            className="w-full bg-transparent text-sm text-slate-300 placeholder-slate-600 resize-none focus:outline-none mb-3"
+          />
+        )}
       </div>
 
       {/* Kanban board */}

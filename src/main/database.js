@@ -87,13 +87,13 @@ function createProject({ name, description, color }) {
   return getProjectById(id)
 }
 
-function updateProject({ id, name, description, color, status }) {
+function updateProject({ id, name, description, color, status, notes }) {
   const now = Date.now()
   getDb().prepare(`
     UPDATE projects
-    SET name = ?, description = ?, color = ?, status = ?, updated_at = ?
+    SET name = ?, description = ?, color = ?, status = ?, notes = ?, updated_at = ?
     WHERE id = ?
-  `).run(name, description || null, color, status, now, id)
+  `).run(name, description || null, color, status, notes !== undefined ? notes : null, now, id)
   return getProjectById(id)
 }
 
@@ -236,6 +236,62 @@ function search(query) {
   `).all(q, q)
 
   return { projects, tasks }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+
+export function getDashboardStats() {
+  const db = getDb()
+  const now = Date.now()
+  const sevenDays = 7 * 24 * 60 * 60 * 1000
+
+  const activeProjects = db.prepare(
+    `SELECT COUNT(*) AS c FROM projects WHERE status = 'active'`
+  ).get().c
+
+  const openTasks = db.prepare(
+    `SELECT COUNT(*) AS c FROM tasks t
+     JOIN projects p ON t.project_id = p.id
+     WHERE p.status = 'active' AND t.status != 'done'`
+  ).get().c
+
+  const inProgress = db.prepare(
+    `SELECT COUNT(*) AS c FROM tasks t
+     JOIN projects p ON t.project_id = p.id
+     WHERE p.status = 'active' AND t.status = 'in_progress'`
+  ).get().c
+
+  const overdue = db.prepare(
+    `SELECT COUNT(*) AS c FROM tasks t
+     JOIN projects p ON t.project_id = p.id
+     WHERE p.status = 'active' AND t.status != 'done'
+       AND t.due_date IS NOT NULL AND t.due_date < ?`
+  ).get(now).c
+
+  const upcoming = db.prepare(
+    `SELECT t.id, t.title, t.due_date, t.priority, t.status,
+            p.id AS project_id, p.name AS project_name, p.color AS project_color
+     FROM tasks t
+     JOIN projects p ON t.project_id = p.id
+     WHERE p.status = 'active' AND t.status != 'done'
+       AND t.due_date IS NOT NULL AND t.due_date >= ? AND t.due_date <= ?
+     ORDER BY t.due_date ASC
+     LIMIT 15`
+  ).all(now - 24 * 60 * 60 * 1000, now + sevenDays)
+
+  const recentProjects = db.prepare(
+    `SELECT p.*,
+       COUNT(t.id) AS task_count,
+       SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) AS done_count
+     FROM projects p
+     LEFT JOIN tasks t ON t.project_id = p.id
+     WHERE p.status = 'active'
+     GROUP BY p.id
+     ORDER BY p.updated_at DESC
+     LIMIT 5`
+  ).all()
+
+  return { activeProjects, openTasks, inProgress, overdue, upcoming, recentProjects }
 }
 
 // ── Deadline notifications helper ─────────────────────────────────────────────

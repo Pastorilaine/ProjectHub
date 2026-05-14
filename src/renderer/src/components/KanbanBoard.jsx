@@ -27,23 +27,44 @@ const COLUMNS = [
   }
 ]
 
+const FILTERS = [
+  { id: 'all', label: 'Kaikki' },
+  { id: 'high', label: '\uD83D\uDD34 Korkea' },
+  { id: 'medium', label: '\uD83D\uDFE1 Normaali' },
+  { id: 'low', label: '\u26AA Matala' },
+  { id: 'overdue', label: '\u23F0 My\u00F6h\u00E4ss\u00E4' }
+]
+
 export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, onTagsChanged }) {
   const [localTasks, setLocalTasks] = useState(tasks)
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [addingToColumn, setAddingToColumn] = useState(null)
+  const [activeFilter, setActiveFilter] = useState('all')
 
   // Keep local tasks in sync when the parent reloads them
   useEffect(() => {
     setLocalTasks(tasks)
   }, [tasks])
 
+  const filteredTasks = useMemo(() => {
+    const now = Date.now()
+    switch (activeFilter) {
+      case 'high': return localTasks.filter((t) => t.priority === 'high')
+      case 'medium': return localTasks.filter((t) => t.priority === 'medium')
+      case 'low': return localTasks.filter((t) => t.priority === 'low')
+      case 'overdue':
+        return localTasks.filter((t) => t.due_date && t.due_date < now && t.status !== 'done')
+      default: return localTasks
+    }
+  }, [localTasks, activeFilter])
+
   const tasksByStatus = useMemo(
     () => ({
-      todo: localTasks.filter((t) => t.status === 'todo'),
-      in_progress: localTasks.filter((t) => t.status === 'in_progress'),
-      done: localTasks.filter((t) => t.status === 'done')
+      todo: filteredTasks.filter((t) => t.status === 'todo'),
+      in_progress: filteredTasks.filter((t) => t.status === 'in_progress'),
+      done: filteredTasks.filter((t) => t.status === 'done')
     }),
-    [localTasks]
+    [filteredTasks]
   )
 
   // ── Drag & drop ────────────────────────────────────────────────────────────
@@ -115,8 +136,31 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
   }
 
   return (
+    <div className="flex flex-col h-full">
+      {/* Filter bar */}
+      <div className="flex items-center gap-1.5 mb-4 flex-wrap">
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setActiveFilter(f.id)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              activeFilter === f.id
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        {activeFilter !== 'all' && (
+          <span className="ml-1 text-xs text-slate-500">
+            {filteredTasks.length} tehtävää
+          </span>
+        )}
+      </div>
+
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 h-full overflow-x-auto pb-4">
+      <div className="flex gap-4 flex-1 overflow-x-auto pb-4">
         {COLUMNS.map((col) => {
           const colTasks = tasksByStatus[col.id] || []
 
@@ -221,5 +265,6 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
         />
       )}
     </DragDropContext>
+    </div>
   )
 }

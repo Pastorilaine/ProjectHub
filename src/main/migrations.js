@@ -9,10 +9,12 @@ const MIGRATIONS = [
     version: 1,
     description: 'Initial schema baseline — tables already created in initializeSchema()',
     sql: null
+  },
+  {
+    version: 2,
+    description: 'Add notes column to projects',
+    sql: `ALTER TABLE projects ADD COLUMN notes TEXT;`
   }
-  // Future migrations:
-  // { version: 2, description: 'Add estimated_minutes to tasks',
-  //   sql: 'ALTER TABLE tasks ADD COLUMN estimated_minutes INTEGER;' },
 ]
 
 export function runMigrations(db) {

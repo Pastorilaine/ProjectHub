@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './components/Sidebar'
 import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
+import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import SearchModal from './components/SearchModal'
 import CreateProjectModal from './components/CreateProjectModal'
 import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
-  const [view, setView] = useState('projects') // 'projects' | 'project-detail' | 'settings'
+  const [view, setView] = useState('dashboard') // 'dashboard' | 'projects' | 'project-detail' | 'settings'
   const [projects, setProjects] = useState([])
   const [selectedProject, setSelectedProject] = useState(null)
   const [tags, setTags] = useState([])
@@ -58,8 +59,19 @@ export default function App() {
     setView('project-detail')
   }
 
+  const openProjectById = (projectId) => {
+    const p = projects.find((pr) => pr.id === projectId)
+    if (p) openProject(p)
+  }
+
   const goHome = () => {
     setView('projects')
+    setSelectedProject(null)
+    loadProjects()
+  }
+
+  const goDashboard = () => {
+    setView('dashboard')
     setSelectedProject(null)
     loadProjects()
   }
@@ -70,11 +82,10 @@ export default function App() {
     openProject(project)
   }
 
-  const handleProjectUpdated = async () => {
+  const handleProjectUpdated = async (updated) => {
     await loadProjects()
-    if (selectedProject) {
-      const updated = projects.find((p) => p.id === selectedProject.id)
-      if (updated) setSelectedProject(updated)
+    if (updated && selectedProject?.id === updated.id) {
+      setSelectedProject(updated)
     }
   }
 
@@ -99,14 +110,21 @@ export default function App() {
           projects={projects}
           selectedProject={selectedProject}
           onSelectProject={openProject}
-          onGoHome={goHome}
+          onGoHome={goDashboard}
           onOpenSearch={() => setShowSearch(true)}
           onNewProject={() => setShowCreateProject(true)}
           onOpenSettings={() => setView('settings')}
+          onOpenProjects={goHome}
           activeView={view}
         />
 
         <main className="flex-1 overflow-hidden flex flex-col min-w-0">
+          {view === 'dashboard' && (
+            <DashboardPage
+              onOpenProject={openProject}
+              onNewProject={() => setShowCreateProject(true)}
+            />
+          )}
           {view === 'projects' && (
             <ProjectsPage
               projects={projects}
@@ -126,7 +144,7 @@ export default function App() {
             />
           )}
           {view === 'settings' && (
-            <SettingsPage onBack={goHome} />
+            <SettingsPage onBack={goDashboard} />
           )}
         </main>
       </div>
@@ -140,8 +158,7 @@ export default function App() {
           }}
           onOpenProjectById={(projectId) => {
             setShowSearch(false)
-            const p = projects.find((pr) => pr.id === projectId)
-            if (p) openProject(p)
+            openProjectById(projectId)
           }}
         />
       )}

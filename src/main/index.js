@@ -176,7 +176,8 @@ app.whenReady().then(() => {
 
   // ── Search ────────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.SEARCH, (_, query) => db.search(query))
-
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  ipcMain.handle(IPC.DASHBOARD_STATS, () => db.getDashboardStats())
   // ── Auto-updater ──────────────────────────────────────────────────────────
   ipcMain.handle(IPC.UPDATE_INSTALL, () => installUpdate())
   ipcMain.handle(IPC.UPDATE_CHECK, () => checkForUpdates())
