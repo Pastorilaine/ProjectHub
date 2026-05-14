@@ -26,7 +26,28 @@ const api = {
   deleteTag: (id) => ipcRenderer.invoke(IPC.TAGS_DELETE, id),
 
   // Search
-  search: (query) => ipcRenderer.invoke(IPC.SEARCH, query)
+  search: (query) => ipcRenderer.invoke(IPC.SEARCH, query),
+
+  // Auto-updater — install the downloaded update
+  installUpdate: () => ipcRenderer.invoke(IPC.UPDATE_INSTALL),
+
+  // Auto-updater — push events from main to renderer
+  // Each returns a cleanup function to remove the listener.
+  onUpdateAvailable: (cb) => {
+    const fn = (_, data) => cb(data)
+    ipcRenderer.on('update:available', fn)
+    return () => ipcRenderer.removeListener('update:available', fn)
+  },
+  onUpdateProgress: (cb) => {
+    const fn = (_, data) => cb(data)
+    ipcRenderer.on('update:progress', fn)
+    return () => ipcRenderer.removeListener('update:progress', fn)
+  },
+  onUpdateDownloaded: (cb) => {
+    const fn = (_, data) => cb(data)
+    ipcRenderer.on('update:downloaded', fn)
+    return () => ipcRenderer.removeListener('update:downloaded', fn)
+  }
 }
 
 if (process.contextIsolated) {

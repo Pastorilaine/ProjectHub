@@ -4,6 +4,7 @@ import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import SearchModal from './components/SearchModal'
 import CreateProjectModal from './components/CreateProjectModal'
+import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
   const [view, setView] = useState('projects') // 'projects' | 'project-detail'
@@ -90,36 +91,39 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-full bg-slate-900 text-slate-100">
-      <Sidebar
-        projects={projects}
-        selectedProject={selectedProject}
-        onSelectProject={openProject}
-        onGoHome={goHome}
-        onOpenSearch={() => setShowSearch(true)}
-        onNewProject={() => setShowCreateProject(true)}
-      />
+    <div className="flex flex-col h-full bg-slate-900 text-slate-100">
+      <UpdateBanner />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar
+          projects={projects}
+          selectedProject={selectedProject}
+          onSelectProject={openProject}
+          onGoHome={goHome}
+          onOpenSearch={() => setShowSearch(true)}
+          onNewProject={() => setShowCreateProject(true)}
+        />
 
-      <main className="flex-1 overflow-hidden flex flex-col min-w-0">
-        {view === 'projects' && (
-          <ProjectsPage
-            projects={projects}
-            onOpenProject={openProject}
-            onNewProject={() => setShowCreateProject(true)}
-            onRefresh={loadProjects}
-          />
-        )}
-        {view === 'project-detail' && selectedProject && (
-          <ProjectDetailPage
-            project={selectedProject}
-            tags={tags}
-            onBack={goHome}
-            onProjectUpdated={handleProjectUpdated}
-            onProjectDeleted={handleProjectDeleted}
-            onTagsChanged={loadTags}
-          />
-        )}
-      </main>
+        <main className="flex-1 overflow-hidden flex flex-col min-w-0">
+          {view === 'projects' && (
+            <ProjectsPage
+              projects={projects}
+              onOpenProject={openProject}
+              onNewProject={() => setShowCreateProject(true)}
+              onRefresh={loadProjects}
+            />
+          )}
+          {view === 'project-detail' && selectedProject && (
+            <ProjectDetailPage
+              project={selectedProject}
+              tags={tags}
+              onBack={goHome}
+              onProjectUpdated={handleProjectUpdated}
+              onProjectDeleted={handleProjectDeleted}
+              onTagsChanged={loadTags}
+            />
+          )}
+        </main>
+      </div>
 
       {showSearch && (
         <SearchModal

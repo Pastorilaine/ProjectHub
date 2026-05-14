@@ -22,7 +22,10 @@ const IPC = {
   TAGS_DELETE: 'db:tags:delete',
 
   // Search
-  SEARCH: 'db:search'
+  SEARCH: 'db:search',
+
+  // Auto-updater (renderer → main)
+  UPDATE_INSTALL: 'update:install'
 }
 
 export default IPC

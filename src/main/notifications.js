@@ -1,0 +1,48 @@
+/**
+ * Deadline notification checker.
+ * Runs once on startup and then every hour.
+ * Uses Electron's native Notification API (Windows toast / macOS banner).
+ */
+
+import { Notification } from 'electron'
+import { getUpcomingDeadlineTasks } from './database'
+
+let timer = null
+
+export function startDeadlineChecker() {
+  // Check immediately, then every hour
+  checkDeadlines()
+  timer = setInterval(checkDeadlines, 60 * 60 * 1000)
+}
+
+export function stopDeadlineChecker() {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+}
+
+function checkDeadlines() {
+  if (!Notification.isSupported()) return
+
+  try {
+    const tasks = getUpcomingDeadlineTasks()
+    const now = Date.now()
+
+    for (const task of tasks) {
+      const isOverdue = task.due_date < now
+
+      const notification = new Notification({
+        title: isOverdue
+          ? `⚠️ Myöhässä: ${task.title}`
+          : `🔔 Deadline tänään: ${task.title}`,
+        body: `Projekti: ${task.project_name}`,
+        silent: false
+      })
+
+      notification.show()
+    }
+  } catch (err) {
+    console.error('[notifications] Deadline check failed:', err)
+  }
+}

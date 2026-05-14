@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { join } from 'path'
 import { app } from 'electron'
 import { v4 as uuidv4 } from 'uuid'
+import { runMigrations } from './migrations'
 
 let db
 
@@ -12,6 +13,7 @@ function getDb() {
     db.pragma('journal_mode = WAL')
     db.pragma('foreign_keys = ON')
     initializeSchema()
+    runMigrations(db)
   }
   return db
 }
@@ -234,6 +236,29 @@ function search(query) {
   `).all(q, q)
 
   return { projects, tasks }
+}
+
+// ── Deadline notifications helper ─────────────────────────────────────────────
+
+/**
+ * Returns tasks whose deadline falls within the last 24 h (overdue today) or
+ * the next 24 h (due today / tomorrow), excluding already-done tasks.
+ * Called by notifications.js.
+ */
+export function getUpcomingDeadlineTasks() {
+  const now = Date.now()
+  const oneDayMs = 24 * 60 * 60 * 1000
+  return getDb()
+    .prepare(
+      `SELECT t.title, t.due_date, p.name AS project_name
+       FROM tasks t
+       JOIN projects p ON t.project_id = p.id
+       WHERE t.status != 'done'
+         AND t.due_date IS NOT NULL
+         AND t.due_date > ?
+         AND t.due_date <= ?`
+    )
+    .all(now - oneDayMs, now + oneDayMs)
 }
 
 export {

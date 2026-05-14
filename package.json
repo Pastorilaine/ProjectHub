@@ -1,6 +1,6 @@
 {
   "name": "projecthub",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local-first project & task management app by IT-Veljekset Group",
   "main": "out/main/index.js",
   "scripts": {
@@ -15,6 +15,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
+    "@hello-pangea/dnd": "^18.0.1",
     "better-sqlite3": "^12.10.0",
     "electron-updater": "^6.2.1",
     "uuid": "^10.0.0"
@@ -34,36 +35,48 @@
   "build": {
     "appId": "fi.it-veljekset.projecthub",
     "productName": "ProjectHub",
+    "icon": "projecthub.png",
     "directories": {
       "output": "dist"
     },
     "files": [
       "out/**/*",
+      "projecthub.png",
       "!**/*.map"
     ],
-    "extraResources": [],
+    "protocols": [
+      { "name": "ProjectHub", "schemes": ["projecthub"] }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "Pastorilaine",
+      "repo": "ProjectHub"
+    },
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
-      "icon": "resources/icon.ico"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "resources/icon.icns"
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "resources/icon.png"
+      "icon": "projecthub.png",
+      "publisherName": "IT-Veljekset Group"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": ["Finnish"],
+      "language": "1035"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "projecthub.png",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "projecthub.png",
+      "category": "Office"
     }
   }
 }

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import TaskCard from './TaskCard'
 import CreateTaskModal from './CreateTaskModal'
 
@@ -27,107 +28,186 @@ const COLUMNS = [
 ]
 
 export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, onTagsChanged }) {
+  const [localTasks, setLocalTasks] = useState(tasks)
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [addingToColumn, setAddingToColumn] = useState(null)
 
-  const tasksByStatus = {
-    todo: tasks.filter((t) => t.status === 'todo'),
-    in_progress: tasks.filter((t) => t.status === 'in_progress'),
-    done: tasks.filter((t) => t.status === 'done')
+  // Keep local tasks in sync when the parent reloads them
+  useEffect(() => {
+    setLocalTasks(tasks)
+  }, [tasks])
+
+  const tasksByStatus = useMemo(
+    () => ({
+      todo: localTasks.filter((t) => t.status === 'todo'),
+      in_progress: localTasks.filter((t) => t.status === 'in_progress'),
+      done: localTasks.filter((t) => t.status === 'done')
+    }),
+    [localTasks]
+  )
+
+  // ── Drag & drop ────────────────────────────────────────────────────────────
+  const handleDragEnd = async (result) => {
+    const { source, destination, draggableId } = result
+    if (!destination) return
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return
+
+    const newStatus = destination.droppableId
+
+    // Optimistic update: move the task in local state immediately
+    setLocalTasks((prev) => {
+      const task = prev.find((t) => t.id === draggableId)
+      if (!task) return prev
+      const updatedTask = { ...task, status: newStatus }
+      const withoutTask = prev.filter((t) => t.id !== draggableId)
+      // Insert at the correct position within the destination column
+      const destGroup = withoutTask.filter((t) => t.status === newStatus)
+      const others = withoutTask.filter((t) => t.status !== newStatus)
+      destGroup.splice(destination.index, 0, updatedTask)
+      return [...others, ...destGroup]
+    })
+
+    // Persist status change to DB when dropping into a different column
+    if (source.droppableId !== destination.droppableId) {
+      try {
+        const updated = await window.api.updateTaskStatus(draggableId, newStatus)
+        const updater = (prev) =>
+          prev.map((t) => (t.id === draggableId ? { ...updated, tags: t.tags } : t))
+        setLocalTasks(updater)
+        onTasksChanged(updater)
+      } catch (err) {
+        console.error('[KanbanBoard] updateTaskStatus failed:', err)
+        setLocalTasks(tasks) // revert on error
+      }
+    }
   }
 
+  // ── Other handlers (keep local + parent state in sync) ────────────────────
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       const updated = await window.api.updateTaskStatus(taskId, newStatus)
-      onTasksChanged((prev) => prev.map((t) => (t.id === taskId ? { ...updated, tags: t.tags } : t)))
+      const updater = (prev) =>
+        prev.map((t) => (t.id === taskId ? { ...updated, tags: t.tags } : t))
+      setLocalTasks(updater)
+      onTasksChanged(updater)
     } catch (err) {
       console.error(err)
     }
   }
 
   const handleTaskUpdated = (updated) => {
-    onTasksChanged((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+    const updater = (prev) => prev.map((t) => (t.id === updated.id ? updated : t))
+    setLocalTasks(updater)
+    onTasksChanged(updater)
   }
 
   const handleTaskDeleted = (id) => {
-    onTasksChanged((prev) => prev.filter((t) => t.id !== id))
+    const updater = (prev) => prev.filter((t) => t.id !== id)
+    setLocalTasks(updater)
+    onTasksChanged(updater)
   }
 
   const handleTaskCreated = (task) => {
-    onTasksChanged((prev) => [...prev, task])
+    const updater = (prev) => [...prev, task]
+    setLocalTasks(updater)
+    onTasksChanged(updater)
     setAddingToColumn(null)
   }
 
   return (
-    <div className="flex gap-4 h-full overflow-x-auto pb-4">
-      {COLUMNS.map((col) => {
-        const colTasks = tasksByStatus[col.id] || []
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="flex gap-4 h-full overflow-x-auto pb-4">
+        {COLUMNS.map((col) => {
+          const colTasks = tasksByStatus[col.id] || []
 
-        return (
-          <div key={col.id} className="flex-shrink-0 w-72 flex flex-col">
-            {/* Column header */}
-            <div
-              className={`flex items-center justify-between px-3 py-2 rounded-lg mb-3 ${col.headerBg}`}
-            >
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${col.dotColor}`} />
-                <span className={`text-xs font-semibold uppercase tracking-wider ${col.color}`}>
-                  {col.label}
-                </span>
-                <span className="text-xs text-slate-600 ml-1">{colTasks.length}</span>
-              </div>
-              <button
-                onClick={() => setAddingToColumn(col.id)}
-                className="w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:text-slate-300 hover:bg-slate-700 transition-colors"
-                title="Lisää tehtävä"
+          return (
+            <div key={col.id} className="flex-shrink-0 w-72 flex flex-col">
+              {/* Column header */}
+              <div
+                className={`flex items-center justify-between px-3 py-2 rounded-lg mb-3 ${col.headerBg}`}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Task list */}
-            <div className="flex-1 overflow-y-auto space-y-2 pr-0.5">
-              {colTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  allTags={tags}
-                  onStatusChange={handleStatusChange}
-                  onUpdated={handleTaskUpdated}
-                  onDeleted={handleTaskDeleted}
-                  onTagsChanged={onTagsChanged}
-                  editing={editingTaskId === task.id}
-                  onStartEdit={() => setEditingTaskId(task.id)}
-                  onStopEdit={() => setEditingTaskId(null)}
-                />
-              ))}
-
-              {/* Empty state */}
-              {colTasks.length === 0 && (
-                <div
-                  className="border-2 border-dashed border-slate-800 rounded-lg py-6 text-center cursor-pointer hover:border-slate-600 transition-colors"
-                  onClick={() => setAddingToColumn(col.id)}
-                >
-                  <p className="text-xs text-slate-600">Tyhjä</p>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${col.dotColor}`} />
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${col.color}`}>
+                    {col.label}
+                  </span>
+                  <span className="text-xs text-slate-600 ml-1">{colTasks.length}</span>
                 </div>
-              )}
+                <button
+                  onClick={() => setAddingToColumn(col.id)}
+                  className="w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:text-slate-300 hover:bg-slate-700 transition-colors"
+                  title="Lisää tehtävä"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
 
-              {/* Add task inline */}
-              <button
-                onClick={() => setAddingToColumn(col.id)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-slate-800/50 transition-colors text-xs"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Lisää tehtävä
-              </button>
+              {/* Droppable task list */}
+              <Droppable droppableId={col.id}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`flex-1 overflow-y-auto space-y-2 pr-0.5 min-h-16 rounded-lg p-1 transition-colors ${
+                      snapshot.isDraggingOver ? 'bg-slate-800/50 ring-1 ring-slate-600' : ''
+                    }`}
+                  >
+                    {colTasks.map((task, index) => (
+                      <Draggable key={task.id} draggableId={task.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`transition-transform ${snapshot.isDragging ? 'rotate-1 scale-[1.02] shadow-xl' : ''}`}
+                          >
+                            <TaskCard
+                              task={task}
+                              allTags={tags}
+                              onStatusChange={handleStatusChange}
+                              onUpdated={handleTaskUpdated}
+                              onDeleted={handleTaskDeleted}
+                              onTagsChanged={onTagsChanged}
+                              editing={editingTaskId === task.id}
+                              onStartEdit={() => setEditingTaskId(task.id)}
+                              onStopEdit={() => setEditingTaskId(null)}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+
+                    {provided.placeholder}
+
+                    {/* Empty state */}
+                    {colTasks.length === 0 && !snapshot.isDraggingOver && (
+                      <div
+                        className="border-2 border-dashed border-slate-800 rounded-lg py-6 text-center cursor-pointer hover:border-slate-600 transition-colors"
+                        onClick={() => setAddingToColumn(col.id)}
+                      >
+                        <p className="text-xs text-slate-600">Tyhjä — lisää tehtävä</p>
+                      </div>
+                    )}
+
+                    {/* Add task inline button */}
+                    <button
+                      onClick={() => setAddingToColumn(col.id)}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-slate-800/50 transition-colors text-xs"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Lisää tehtävä
+                    </button>
+                  </div>
+                )}
+              </Droppable>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
 
       {/* Create task modal */}
       {addingToColumn && (
@@ -140,6 +220,6 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
           onTagsChanged={onTagsChanged}
         />
       )}
-    </div>
+    </DragDropContext>
   )
 }
