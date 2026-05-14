@@ -55,7 +55,7 @@ export default function EditProjectModal({ project, onClose, onSaved }) {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-xs font-medium text-slate-400 mb-1.5">
             Nimi <span className="text-red-400">*</span>
           </label>
           <input
@@ -63,17 +63,19 @@ export default function EditProjectModal({ project, onClose, onSaved }) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-colors"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Kuvaus</label>
+          <label className="block text-xs font-medium text-slate-400 mb-1.5">Kuvaus</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full rounded-xl px-3 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-none transition-colors"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
           />
         </div>
 
@@ -96,11 +98,12 @@ export default function EditProjectModal({ project, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Tila</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tila</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 [color-scheme:dark] transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -115,14 +118,16 @@ export default function EditProjectModal({ project, onClose, onSaved }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:text-white transition-colors"
+            style={{ background: 'rgba(255,255,255,0.05)' }}
           >
             Peruuta
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}
           >
             {saving ? 'Tallennetaan...' : 'Tallenna'}
           </button>

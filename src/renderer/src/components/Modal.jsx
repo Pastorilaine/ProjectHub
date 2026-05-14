@@ -4,21 +4,25 @@
 export default function Modal({ title, onClose, children, wide }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(16px)' }}
       onClick={onClose}
     >
       <div
-        className={`bg-slate-800 rounded-xl shadow-2xl border border-slate-700 w-full ${
-          wide ? 'max-w-2xl' : 'max-w-md'
-        }`}
+        className={`w-full rounded-2xl shadow-2xl ${wide ? 'max-w-2xl' : 'max-w-md'}`}
+        style={{ background: 'rgba(8,12,22,0.96)', border: '1px solid rgba(255,255,255,0.10)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
-          <h2 className="text-sm font-semibold text-white">{title}</h2>
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          <h2 className="text-sm font-semibold text-white tracking-tight">{title}</h2>
           <button
             onClick={onClose}
-            className="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-white transition-colors"
+            style={{ background: 'rgba(255,255,255,0.06)' }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -27,7 +31,7 @@ export default function Modal({ title, onClose, children, wide }) {
         </div>
 
         {/* Body */}
-        <div className="px-5 py-4">{children}</div>
+        <div className="px-5 py-5">{children}</div>
       </div>
     </div>
   )

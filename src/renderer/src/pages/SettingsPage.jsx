@@ -25,7 +25,7 @@ function Toggle({ checked, onChange, disabled }) {
 
 function SettingRow({ label, description, children }) {
   return (
-    <div className="flex items-start justify-between gap-6 py-3.5">
+    <div className="flex items-start justify-between gap-6 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-slate-200">{label}</p>
         {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
@@ -38,10 +38,13 @@ function SettingRow({ label, description, children }) {
 function Section({ title, children }) {
   return (
     <section className="mb-8">
-      <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 pb-2 border-b border-slate-800">
+      <h2
+        className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 pb-2"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+      >
         {title}
       </h2>
-      <div className="divide-y divide-slate-800/60">{children}</div>
+      <div className="divide-y" style={{ '--tw-divide-opacity': 1 }}>{children}</div>
     </section>
   )
 }
@@ -92,7 +95,7 @@ export default function SettingsPage({ onBack }) {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 max-w-2xl">
+    <div className="flex-1 overflow-y-auto p-8 max-w-2xl" style={{ background: '#0A0F1C' }}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <button
@@ -154,9 +157,8 @@ export default function SettingsPage({ onBack }) {
             value={settings.notificationAdvanceHours ?? 24}
             disabled={!settings.deadlineNotifications}
             onChange={(e) => update('notificationAdvanceHours', Number(e.target.value))}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-1.5
-              focus:outline-none focus:ring-1 focus:ring-blue-500
-              disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-lg px-3 py-1.5 text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 [color-scheme:dark] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
           >
             {ADVANCE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -177,7 +179,8 @@ export default function SettingsPage({ onBack }) {
         >
           <button
             onClick={() => window.api?.checkForUpdates?.()}
-            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm rounded-md transition-colors"
+            className="px-3 py-1.5 text-slate-200 text-sm rounded-lg transition-colors hover:text-white"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
           >
             Tarkista nyt
           </button>

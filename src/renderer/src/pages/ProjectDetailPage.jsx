@@ -87,9 +87,12 @@ export default function ProjectDetailPage({
   const progress = total > 0 ? Math.round((done / total) * 100) : 0
 
   return (
-    <div className="flex flex-col h-full bg-slate-900">
+    <div className="flex flex-col h-full" style={{ background: '#0A0F1C' }}>
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-slate-800 px-6 py-4 drag-region">
+      <div
+        className="flex-shrink-0 px-6 py-3.5 drag-region"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+      >
         <div className="flex items-center gap-3 no-drag">
           {/* Breadcrumb */}
           <button
@@ -117,9 +120,10 @@ export default function ProjectDetailPage({
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <button
+          <button
               onClick={() => setShowEdit(true)}
-              className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)' }}
             >
               Muokkaa
             </button>
@@ -179,7 +183,10 @@ export default function ProjectDetailPage({
       </div>
 
       {/* Notes collapsible */}
-      <div className="flex-shrink-0 border-b border-slate-800 px-6">
+      <div
+        className="flex-shrink-0 px-6"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
         <button
           onClick={() => setNotesOpen((v) => !v)}
           className="flex items-center gap-2 py-2 text-xs text-slate-500 hover:text-slate-300 w-full text-left transition-colors"
@@ -201,7 +208,8 @@ export default function ProjectDetailPage({
             onBlur={handleNotesSave}
             placeholder="Kirjoita muistiinpanoja projektista..."
             rows={3}
-            className="w-full bg-transparent text-sm text-slate-300 placeholder-slate-600 resize-none focus:outline-none mb-3"
+            className="w-full text-sm text-slate-300 placeholder-slate-600 resize-none focus:outline-none mb-3"
+            style={{ background: 'transparent' }}
           />
         )}
       </div>

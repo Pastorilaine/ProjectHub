@@ -33,15 +33,17 @@ export default function SearchModal({ onClose, onOpenProject, onOpenProjectById 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24"
+      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(16px)' }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl bg-slate-800 rounded-xl shadow-2xl border border-slate-700 overflow-hidden"
+        className="w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden"
+        style={{ background: 'rgba(8,12,22,0.97)', border: '1px solid rgba(255,255,255,0.10)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
-        <div className="flex items-center px-4 py-3 border-b border-slate-700 gap-3">
+        <div className="flex items-center px-4 py-3.5 gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -70,14 +72,17 @@ export default function SearchModal({ onClose, onOpenProject, onOpenProjectById 
 
           {results && results.projects.length > 0 && (
             <div>
-              <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-900/50">
+              <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 Projektit
               </div>
               {results.projects.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => onOpenProject(p)}
-                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-700 transition-colors"
+                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors"
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <span
                     className="w-3 h-3 rounded-full flex-shrink-0"
@@ -94,14 +99,17 @@ export default function SearchModal({ onClose, onOpenProject, onOpenProjectById 
 
           {results && results.tasks.length > 0 && (
             <div>
-              <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-900/50">
+              <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 Tehtävät
               </div>
               {results.tasks.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => onOpenProjectById(t.project_id)}
-                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-700 transition-colors"
+                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors"
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <span
                     className="w-3 h-3 rounded-full flex-shrink-0"

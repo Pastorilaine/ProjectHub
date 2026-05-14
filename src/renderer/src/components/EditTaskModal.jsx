@@ -100,7 +100,7 @@ export default function EditTaskModal({ task, tags, onClose, onSaved, onDeleted,
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-xs font-medium text-slate-400 mb-1.5">
             Otsikko <span className="text-red-400">*</span>
           </label>
           <input
@@ -108,27 +108,30 @@ export default function EditTaskModal({ task, tags, onClose, onSaved, onDeleted,
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-colors"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Kuvaus</label>
+          <label className="block text-xs font-medium text-slate-400 mb-1.5">Kuvaus</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full rounded-xl px-3 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-none transition-colors"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
           />
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Tila</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tila</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 [color-scheme:dark] transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -137,11 +140,12 @@ export default function EditTaskModal({ task, tags, onClose, onSaved, onDeleted,
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Prioriteetti</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Prioriteetti</label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 [color-scheme:dark] transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
             >
               {PRIORITY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -150,12 +154,13 @@ export default function EditTaskModal({ task, tags, onClose, onSaved, onDeleted,
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Deadline</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Deadline</label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:dark]"
+              className="w-full rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 [color-scheme:dark] transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
             />
           </div>
         </div>
@@ -187,25 +192,28 @@ export default function EditTaskModal({ task, tags, onClose, onSaved, onDeleted,
               onChange={(e) => setNewTagName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), createAndAddTag())}
               placeholder="Uusi tagi..."
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 rounded-lg px-3 py-1.5 text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
             />
             <button
               type="button"
               onClick={createAndAddTag}
-              className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-slate-300 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
             >
               + Lisää
             </button>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-700">
+        <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           {/* Delete */}
           {!confirmDelete ? (
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="px-3 py-2 rounded-lg text-sm text-red-400 hover:text-red-300 hover:bg-red-900/30 transition-colors"
+              className="px-3 py-2 rounded-lg text-sm text-red-400 hover:text-red-300 transition-colors"
+              style={{ background: 'rgba(239,68,68,0.08)' }}
             >
               Poista tehtävä
             </button>
@@ -215,14 +223,16 @@ export default function EditTaskModal({ task, tags, onClose, onSaved, onDeleted,
               <button
                 type="button"
                 onClick={handleDelete}
-                className="px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded-lg text-xs text-white transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs text-white transition-colors"
+                style={{ background: 'rgba(185,28,28,0.8)' }}
               >
                 Kyllä, poista
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-slate-300 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs text-slate-300 transition-colors"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
               >
                 Peruuta
               </button>
@@ -233,14 +243,16 @@ export default function EditTaskModal({ task, tags, onClose, onSaved, onDeleted,
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:text-white transition-colors"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
             >
               Peruuta
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}
             >
               {saving ? 'Tallennetaan...' : 'Tallenna'}
             </button>

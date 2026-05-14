@@ -37,7 +37,19 @@ export default function TaskCard({
   return (
     <>
       <div
-        className="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:border-slate-600 transition-colors cursor-pointer group"
+        className="rounded-xl p-3.5 cursor-pointer group transition-all"
+        style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.07)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+          e.currentTarget.style.border = '1px solid rgba(255,255,255,0.12)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+          e.currentTarget.style.border = '1px solid rgba(255,255,255,0.07)'
+        }}
         onClick={onStartEdit}
       >
         {/* Priority dot + title */}

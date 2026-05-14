@@ -7,23 +7,23 @@ const COLUMNS = [
   {
     id: 'todo',
     label: 'Tekemättä',
-    color: 'text-slate-400',
-    headerBg: 'bg-slate-800',
-    dotColor: 'bg-slate-500'
+    color: 'text-slate-300',
+    dotColor: 'bg-slate-500',
+    accentBorder: 'rgba(100,116,139,0.30)'
   },
   {
     id: 'in_progress',
     label: 'Käynnissä',
-    color: 'text-blue-400',
-    headerBg: 'bg-blue-950',
-    dotColor: 'bg-blue-400'
+    color: 'text-blue-300',
+    dotColor: 'bg-blue-400',
+    accentBorder: 'rgba(59,130,246,0.35)'
   },
   {
     id: 'done',
     label: 'Valmis',
-    color: 'text-green-400',
-    headerBg: 'bg-green-950',
-    dotColor: 'bg-green-400'
+    color: 'text-green-300',
+    dotColor: 'bg-green-400',
+    accentBorder: 'rgba(16,185,129,0.35)'
   }
 ]
 
@@ -77,7 +77,7 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
 
     // Optimistic update: move the task in local state immediately
     setLocalTasks((prev) => {
-      const task = prev.find((t) => t.id === draggableId)
+      const task = prev.find((t) => t.id === Number(draggableId))
       if (!task) return prev
       const updatedTask = { ...task, status: newStatus }
       const withoutTask = prev.filter((t) => t.id !== draggableId)
@@ -91,7 +91,7 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
     // Persist status change to DB when dropping into a different column
     if (source.droppableId !== destination.droppableId) {
       try {
-        const updated = await window.api.updateTaskStatus(draggableId, newStatus)
+        const updated = await window.api.updateTaskStatus(Number(draggableId), newStatus)
         const updater = (prev) =>
           prev.map((t) => (t.id === draggableId ? { ...updated, tags: t.tags } : t))
         setLocalTasks(updater)
@@ -143,11 +143,15 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
           <button
             key={f.id}
             onClick={() => setActiveFilter(f.id)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
               activeFilter === f.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                ? 'text-white'
+                : 'text-slate-500 hover:text-slate-300'
             }`}
+            style={activeFilter === f.id
+              ? { background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }
+              : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }
+            }
           >
             {f.label}
           </button>
@@ -168,7 +172,8 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
             <div key={col.id} className="flex-shrink-0 w-72 flex flex-col">
               {/* Column header */}
               <div
-                className={`flex items-center justify-between px-3 py-2 rounded-lg mb-3 ${col.headerBg}`}
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl mb-3"
+                style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${col.accentBorder}` }}
               >
                 <div className="flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${col.dotColor}`} />
@@ -194,12 +199,13 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`flex-1 overflow-y-auto space-y-2 pr-0.5 min-h-16 rounded-lg p-1 transition-colors ${
-                      snapshot.isDraggingOver ? 'bg-slate-800/50 ring-1 ring-slate-600' : ''
+                    className={`flex-1 overflow-y-auto space-y-2 pr-0.5 min-h-16 rounded-xl p-1 transition-all ${
+                      snapshot.isDraggingOver ? 'ring-1 ring-blue-500/40' : ''
                     }`}
+                    style={{ background: snapshot.isDraggingOver ? 'rgba(59,130,246,0.06)' : 'transparent' }}
                   >
                     {colTasks.map((task, index) => (
-                      <Draggable key={task.id} draggableId={task.id} index={index}>
+                      <Draggable key={task.id} draggableId={String(task.id)} index={index}>
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
@@ -228,7 +234,10 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
                     {/* Empty state */}
                     {colTasks.length === 0 && !snapshot.isDraggingOver && (
                       <div
-                        className="border-2 border-dashed border-slate-800 rounded-lg py-6 text-center cursor-pointer hover:border-slate-600 transition-colors"
+                        className="rounded-xl py-6 text-center cursor-pointer transition-all"
+                        style={{ border: '2px dashed rgba(255,255,255,0.08)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.border = '2px dashed rgba(255,255,255,0.18)'}
+                        onMouseLeave={(e) => e.currentTarget.style.border = '2px dashed rgba(255,255,255,0.08)'}
                         onClick={() => setAddingToColumn(col.id)}
                       >
                         <p className="text-xs text-slate-600">Tyhjä — lisää tehtävä</p>

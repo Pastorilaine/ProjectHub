@@ -96,8 +96,12 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-slate-900 text-slate-400">
-        <div className="text-sm">Ladataan...</div>
+      <div className="flex h-full items-center justify-center text-slate-500" style={{ background: '#060A12' }}>
+        <svg className="animate-spin w-5 h-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+        <span className="text-sm">Ladataan...</span>
       </div>
     )
   }
@@ -121,7 +125,7 @@ export default function App() {
         <main className="flex-1 overflow-hidden flex flex-col min-w-0" style={{ background: '#0A0F1C' }}>
           {view === 'dashboard' && (
             <DashboardPage
-              onOpenProject={openProject}
+              onOpenProject={openProjectById}
               onNewProject={() => setShowCreateProject(true)}
             />
           )}
