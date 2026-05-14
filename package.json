@@ -1,6 +1,6 @@
 {
   "name": "projecthub",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Local-first project & task management app by IT-Veljekset Group",
   "main": "out/main/index.js",
   "scripts": {

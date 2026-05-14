@@ -35,7 +35,10 @@ export default function UpdateBanner() {
     })
 
     const cleanProgress = window.api.onUpdateProgress((data) => {
-      setInfo((prev) => (prev ? { ...prev, state: 'downloading', percent: data.percent } : null))
+      setInfo((prev) => {
+        if (!prev || prev.state === 'downloaded') return prev
+        return { ...prev, state: 'downloading', percent: data.percent }
+      })
     })
 
     const cleanDownloaded = window.api.onUpdateDownloaded((data) => {
