@@ -8,6 +8,7 @@
  */
 
 import { autoUpdater } from 'electron-updater'
+import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
 
 let mainWindow = null
@@ -70,9 +71,19 @@ export function initAutoUpdater(win) {
  * Will quit the app and relaunch after installing.
  */
 export function installUpdate() {
-  // isSilent=true  → runs NSIS with /S flag, no wizard dialog
-  // isForceRunAfter=true → relaunches the app after install completes
-  autoUpdater.quitAndInstall(true, true)
+  // Defer one tick so the IPC reply is sent before we start quitting
+  setImmediate(() => {
+    try {
+      // isSilent=true  → runs NSIS with /S flag, no wizard dialog
+      // isForceRunAfter=true → relaunches the app after install completes
+      autoUpdater.quitAndInstall(true, true)
+    } catch (err) {
+      console.error('[updater] quitAndInstall failed:', err.message)
+      // Fallback: autoInstallOnAppQuit=true will pick up the cached download
+      send('update:installError', { message: err.message })
+      app.quit()
+    }
+  })
 }
 
 /**

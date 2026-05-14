@@ -186,8 +186,14 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.DASHBOARD_STATS, () => db.getDashboardStats())
   // ── Auto-updater ──────────────────────────────────────────────────────────
   ipcMain.handle(IPC.UPDATE_INSTALL, () => {
-    // Force actual quit so minimizeToTray won't intercept the close
+    // Mark as quitting so the minimizeToTray close-handler won't intercept
     isQuitting = true
+    // Destroy the tray icon explicitly — it can keep the event loop alive
+    // and prevent a clean exit, causing the installer to never run
+    if (tray && !tray.isDestroyed()) {
+      tray.destroy()
+      tray = null
+    }
     installUpdate()
   })
   ipcMain.handle(IPC.UPDATE_CHECK, () => checkForUpdates())
