@@ -195,6 +195,7 @@ app.on('before-quit', () => {
 // ── IPC validation helpers ─────────────────────────────────────────────────────
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const VALID_STATUSES = new Set(['todo', 'in_progress', 'done'])
+const VALID_PROJECT_STATUSES = new Set(['active', 'archived', 'completed'])
 
 function assertUuid(value, name = 'id') {
   if (typeof value !== 'string' || !UUID_RE.test(value)) {
@@ -225,6 +226,9 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.PROJECTS_UPDATE, (_, data) => {
     assertUuid(data?.id)
     assertTitle(data?.name, 'name')
+    if (data?.status !== undefined && !VALID_PROJECT_STATUSES.has(data.status)) {
+      throw new Error(`Invalid project status: ${data.status}`)
+    }
     return db.updateProject(data)
   })
   ipcMain.handle(IPC.PROJECTS_DELETE, (_, id) => {
@@ -255,6 +259,11 @@ app.whenReady().then(() => {
     assertUuid(id)
     if (!VALID_STATUSES.has(status)) throw new Error(`Invalid status: ${status}`)
     return db.updateTaskStatus(id, status)
+  })
+  ipcMain.handle(IPC.TASKS_UPDATE_ORDER, (_, updates) => {
+    if (!Array.isArray(updates)) throw new Error('updates must be an array')
+    for (const u of updates) assertUuid(u?.id)
+    return db.updateTasksOrder(updates)
   })
 
   // ── Tags ──────────────────────────────────────────────────────────────────

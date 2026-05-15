@@ -89,7 +89,14 @@ function getAllProjects() {
 }
 
 function getProjectById(id) {
-  return getDb().prepare('SELECT * FROM projects WHERE id = ?').get(id)
+  return getDb().prepare(`
+    SELECT p.*, COUNT(t.id) AS task_count,
+           SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) AS done_count
+    FROM projects p
+    LEFT JOIN tasks t ON t.project_id = p.id
+    WHERE p.id = ?
+    GROUP BY p.id
+  `).get(id)
 }
 
 function createProject({ name, description, color }) {
@@ -122,7 +129,7 @@ function deleteProject(id) {
 function getTasksByProject(projectId) {
   const tasks = getDb().prepare(`
     SELECT * FROM tasks WHERE project_id = ? ORDER BY
-      CASE priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+      sort_order ASC,
       created_at ASC
   `).all(projectId)
 
@@ -141,39 +148,51 @@ function getTaskById(id) {
 function createTask({ projectId, title, description, status, priority, dueDate, tagIds }) {
   const now = Date.now()
   const id = uuidv4()
-  getDb().prepare(`
-    INSERT INTO tasks (id, project_id, title, description, status, priority, due_date, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    id,
-    projectId,
-    title,
-    description || null,
-    status || 'todo',
-    priority || 'medium',
-    dueDate || null,
-    now,
-    now
-  )
 
-  if (tagIds && tagIds.length > 0) {
-    setTaskTags(id, tagIds)
-  }
+  getDb().transaction(() => {
+    const effectiveStatus = status || 'todo'
+    const maxOrder = getDb().prepare(
+      'SELECT COALESCE(MAX(sort_order), -1) AS m FROM tasks WHERE project_id = ? AND status = ?'
+    ).get(projectId, effectiveStatus).m
+
+    getDb().prepare(`
+      INSERT INTO tasks (id, project_id, title, description, status, priority, due_date, sort_order, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      projectId,
+      title,
+      description || null,
+      effectiveStatus,
+      priority || 'medium',
+      dueDate || null,
+      maxOrder + 1,
+      now,
+      now
+    )
+
+    if (tagIds && tagIds.length > 0) {
+      setTaskTags(id, tagIds)
+    }
+  })()
 
   return getTaskById(id)
 }
 
 function updateTask({ id, title, description, status, priority, dueDate, tagIds }) {
   const now = Date.now()
-  getDb().prepare(`
-    UPDATE tasks
-    SET title = ?, description = ?, status = ?, priority = ?, due_date = ?, updated_at = ?
-    WHERE id = ?
-  `).run(title, description || null, status, priority, dueDate || null, now, id)
 
-  if (tagIds !== undefined) {
-    setTaskTags(id, tagIds)
-  }
+  getDb().transaction(() => {
+    getDb().prepare(`
+      UPDATE tasks
+      SET title = ?, description = ?, status = ?, priority = ?, due_date = ?, updated_at = ?
+      WHERE id = ?
+    `).run(title, description || null, status, priority, dueDate || null, now, id)
+
+    if (tagIds !== undefined) {
+      setTaskTags(id, tagIds)
+    }
+  })()
 
   return getTaskById(id)
 }
@@ -231,13 +250,17 @@ function setTaskTags(taskId, tagIds) {
 
 // ── Search ────────────────────────────────────────────────────────────────────
 
+function escapeLike(s) {
+  return s.replace(/[%_\\]/g, '\\$&')
+}
+
 function search(query) {
-  const q = `%${query}%`
+  const q = `%${escapeLike(query)}%`
 
   const projects = getDb().prepare(`
     SELECT 'project' AS type, id, name, description, color, status
     FROM projects
-    WHERE name LIKE ? OR description LIKE ?
+    WHERE name LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\'
     LIMIT 20
   `).all(q, q)
 
@@ -246,7 +269,7 @@ function search(query) {
            t.status, t.priority, t.project_id, p.name AS project_name, p.color AS project_color
     FROM tasks t
     JOIN projects p ON p.id = t.project_id
-    WHERE t.title LIKE ? OR t.description LIKE ?
+    WHERE t.title LIKE ? ESCAPE '\\' OR t.description LIKE ? ESCAPE '\\'
     LIMIT 20
   `).all(q, q)
 
@@ -256,34 +279,34 @@ function search(query) {
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export function getDashboardStats() {
-  const db = getDb()
+  const conn = getDb()
   const now = Date.now()
   const sevenDays = 7 * 24 * 60 * 60 * 1000
 
-  const activeProjects = db.prepare(
+  const activeProjects = conn.prepare(
     `SELECT COUNT(*) AS c FROM projects WHERE status = 'active'`
   ).get().c
 
-  const openTasks = db.prepare(
+  const openTasks = conn.prepare(
     `SELECT COUNT(*) AS c FROM tasks t
      JOIN projects p ON t.project_id = p.id
      WHERE p.status = 'active' AND t.status != 'done'`
   ).get().c
 
-  const inProgress = db.prepare(
+  const inProgress = conn.prepare(
     `SELECT COUNT(*) AS c FROM tasks t
      JOIN projects p ON t.project_id = p.id
      WHERE p.status = 'active' AND t.status = 'in_progress'`
   ).get().c
 
-  const overdue = db.prepare(
+  const overdue = conn.prepare(
     `SELECT COUNT(*) AS c FROM tasks t
      JOIN projects p ON t.project_id = p.id
      WHERE p.status = 'active' AND t.status != 'done'
        AND t.due_date IS NOT NULL AND t.due_date < ?`
   ).get(now).c
 
-  const upcoming = db.prepare(
+  const upcoming = conn.prepare(
     `SELECT t.id, t.title, t.due_date, t.priority, t.status,
             p.id AS project_id, p.name AS project_name, p.color AS project_color
      FROM tasks t
@@ -292,9 +315,9 @@ export function getDashboardStats() {
        AND t.due_date IS NOT NULL AND t.due_date >= ? AND t.due_date <= ?
      ORDER BY t.due_date ASC
      LIMIT 15`
-  ).all(now - 24 * 60 * 60 * 1000, now + sevenDays)
+  ).all(now, now + sevenDays)
 
-  const recentProjects = db.prepare(
+  const recentProjects = conn.prepare(
     `SELECT p.*,
        COUNT(t.id) AS task_count,
        SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) AS done_count
@@ -400,6 +423,17 @@ function updateIdeaStatus(id, status) {
   return getIdeaById(id)
 }
 
+function updateTasksOrder(updates) {
+  getDb().transaction(() => {
+    const stmt = getDb().prepare('UPDATE tasks SET sort_order = ?, updated_at = ? WHERE id = ?')
+    const now = Date.now()
+    for (const { id, sortOrder } of updates) {
+      stmt.run(sortOrder, now, id)
+    }
+  })()
+  return { success: true }
+}
+
 export {
   getAllProjects,
   createProject,
@@ -410,6 +444,7 @@ export {
   updateTask,
   deleteTask,
   updateTaskStatus,
+  updateTasksOrder,
   getAllTags,
   createTag,
   deleteTag,

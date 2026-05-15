@@ -9,6 +9,8 @@ import { getUpcomingDeadlineTasks } from './database'
 import { getSettings } from './settings'
 
 let timer = null
+// Tracks task keys (title:due_date) already notified in this session to prevent hourly spam
+const notified = new Set()
 
 export function startDeadlineChecker() {
   // Check immediately, then every hour
@@ -33,6 +35,10 @@ function checkDeadlines() {
     const now = Date.now()
 
     for (const task of tasks) {
+      const key = `${task.title}:${task.due_date}`
+      if (notified.has(key)) continue
+      notified.add(key)
+
       const isOverdue = task.due_date < now
 
       const notification = new Notification({

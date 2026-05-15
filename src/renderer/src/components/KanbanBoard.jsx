@@ -74,32 +74,43 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
     if (source.droppableId === destination.droppableId && source.index === destination.index) return
 
     const newStatus = destination.droppableId
+    const statusChanged = source.droppableId !== destination.droppableId
 
-    // Optimistic update: move the task in local state immediately
-    setLocalTasks((prev) => {
-      const task = prev.find((t) => t.id === draggableId)
-      if (!task) return prev
-      const updatedTask = { ...task, status: newStatus }
-      const withoutTask = prev.filter((t) => t.id !== draggableId)
-      // Insert at the correct position within the destination column
-      const destGroup = withoutTask.filter((t) => t.status === newStatus)
-      const others = withoutTask.filter((t) => t.status !== newStatus)
-      destGroup.splice(destination.index, 0, updatedTask)
-      return [...others, ...destGroup]
-    })
+    // Compute the new task list synchronously — used for both optimistic UI and DB updates
+    const task = localTasks.find((t) => t.id === draggableId)
+    if (!task) return
+    const updatedTask = { ...task, status: newStatus }
+    const withoutTask = localTasks.filter((t) => t.id !== draggableId)
+    const destGroup = withoutTask.filter((t) => t.status === newStatus)
+    const others = withoutTask.filter((t) => t.status !== newStatus)
+    destGroup.splice(destination.index, 0, updatedTask)
+    const newLocalTasks = [...others, ...destGroup]
 
-    // Persist status change to DB when dropping into a different column
-    if (source.droppableId !== destination.droppableId) {
-      try {
+    // Optimistic update
+    setLocalTasks(newLocalTasks)
+
+    try {
+      // Persist status change if the task moved to a different column
+      if (statusChanged) {
         const updated = await window.api.updateTaskStatus(draggableId, newStatus)
-        const updater = (prev) =>
+        setLocalTasks((prev) =>
           prev.map((t) => (t.id === draggableId ? { ...updated, tags: t.tags } : t))
-        setLocalTasks(updater)
-        onTasksChanged(updater)
-      } catch (err) {
-        console.error('[KanbanBoard] updateTaskStatus failed:', err)
-        setLocalTasks(tasks) // revert on error
+        )
       }
+
+      // Persist sort order for all tasks in affected column(s)
+      const affectedStatuses = statusChanged ? [source.droppableId, newStatus] : [newStatus]
+      const orderUpdates = []
+      for (const status of affectedStatuses) {
+        newLocalTasks
+          .filter((t) => t.status === status)
+          .forEach((t, idx) => orderUpdates.push({ id: t.id, sortOrder: idx }))
+      }
+      await window.api.updateTasksOrder(orderUpdates)
+      onTasksChanged(newLocalTasks)
+    } catch (err) {
+      console.error('[KanbanBoard] drag failed:', err)
+      setLocalTasks(tasks) // revert on error
     }
   }
 

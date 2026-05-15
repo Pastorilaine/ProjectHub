@@ -31,6 +31,11 @@ const MIGRATIONS = [
         updated_at INTEGER NOT NULL
       );
     `
+  },
+  {
+    version: 4,
+    description: 'Add sort_order column to tasks for Kanban drag ordering',
+    sql: `ALTER TABLE tasks ADD COLUMN sort_order INTEGER DEFAULT 0;`
   }
 ]
 

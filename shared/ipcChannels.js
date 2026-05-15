@@ -15,6 +15,7 @@ const IPC = {
   TASKS_UPDATE: 'db:tasks:update',
   TASKS_DELETE: 'db:tasks:delete',
   TASKS_UPDATE_STATUS: 'db:tasks:updateStatus',
+  TASKS_UPDATE_ORDER: 'db:tasks:updateOrder',
 
   // Tags
   TAGS_GET_ALL: 'db:tags:getAll',

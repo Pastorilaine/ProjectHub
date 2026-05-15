@@ -9,8 +9,11 @@ const PRIORITY_STYLES = {
 function formatDate(ms) {
   if (!ms) return null
   const d = new Date(ms)
-  const now = new Date()
-  const diffDays = Math.ceil((d - now) / (1000 * 60 * 60 * 24))
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const dDay = new Date(d)
+  dDay.setHours(0, 0, 0, 0)
+  const diffDays = Math.round((dDay - today) / (1000 * 60 * 60 * 24))
   const str = d.toLocaleDateString('fi-FI', { day: 'numeric', month: 'short' })
   if (diffDays < 0) return { str, overdue: true }
   if (diffDays <= 2) return { str, soon: true }

@@ -19,6 +19,7 @@ const api = {
   updateTask: (data) => ipcRenderer.invoke(IPC.TASKS_UPDATE, data),
   deleteTask: (id) => ipcRenderer.invoke(IPC.TASKS_DELETE, id),
   updateTaskStatus: (id, status) => ipcRenderer.invoke(IPC.TASKS_UPDATE_STATUS, { id, status }),
+  updateTasksOrder: (updates) => ipcRenderer.invoke(IPC.TASKS_UPDATE_ORDER, updates),
 
   // Tags
   getTags: () => ipcRenderer.invoke(IPC.TAGS_GET_ALL),

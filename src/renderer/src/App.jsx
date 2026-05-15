@@ -157,11 +157,9 @@ export default function App() {
     setSelectedProject(null)
     setShowSearch(false)
     setShowCreateProject(false)
-    if (view === 'project-detail') {
-      setView('dashboard')
-    }
+    setView((current) => (current === 'project-detail' ? 'dashboard' : current))
     await Promise.all([loadProjects(), loadTags()])
-  }, [applySettingsSnapshot, loadProjects, loadTags, view])
+  }, [applySettingsSnapshot, loadProjects, loadTags])
 
   const handleSaveSettings = useCallback(async (partial) => {
     const saved = await window.api.saveSettings(partial)
