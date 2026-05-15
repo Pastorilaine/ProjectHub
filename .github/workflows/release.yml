@@ -13,7 +13,7 @@ permissions:
 jobs:
   release-windows:
     name: Build & Release (Windows)
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - name: Checkout code
@@ -22,13 +22,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
 
       - name: Install dependencies
         # postinstall runs electron-builder install-app-deps,
         # which downloads prebuilt better-sqlite3 for the target Electron version.
+        # GH_TOKEN is required to avoid GitHub API rate limits during native binary download.
         run: npm ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Vite bundles
         run: npm run build
