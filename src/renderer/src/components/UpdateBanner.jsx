@@ -72,12 +72,12 @@ export default function UpdateBanner() {
 
   return (
     <div
-      className={`flex items-center justify-between px-4 py-2 border-b text-sm flex-shrink-0 transition-colors ${
+      className={`window-banner flex items-center justify-between px-4 py-2.5 text-sm flex-shrink-0 transition-colors ${
         info.state === 'notAvailable'
-          ? 'bg-green-900/70 border-green-700/60 text-green-100'
+          ? 'bg-emerald-950/70 text-emerald-100'
           : info.state === 'installError' || info.state === 'error'
-          ? 'bg-red-900/70 border-red-700/60 text-red-100'
-          : 'bg-blue-900/90 border-blue-700/60 text-blue-100'
+          ? 'bg-rose-950/70 text-rose-100'
+          : 'bg-sky-950/75 text-sky-100'
       }`}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -94,16 +94,16 @@ export default function UpdateBanner() {
 
         {info.state === 'available' && (
           <span className="truncate">
-            🔄 Uusi versio <strong>{info.version}</strong> saatavilla — ladataan taustalla…
+            Uusi versio <strong>{info.version}</strong> saatavilla — ladataan taustalla…
           </span>
         )}
 
         {info.state === 'downloading' && (
           <>
-            <span className="whitespace-nowrap">⬇️ Ladataan… {info.percent}%</span>
-            <div className="flex-1 max-w-48 bg-blue-950 rounded-full h-1.5">
+            <span className="whitespace-nowrap">Ladataan… {info.percent}%</span>
+            <div className="flex-1 max-w-52 rounded-full h-1.5 bg-white/10">
               <div
-                className="bg-blue-400 h-1.5 rounded-full transition-all duration-500"
+                className="h-1.5 rounded-full transition-all duration-500 bg-sky-300"
                 style={{ width: `${info.percent}%` }}
               />
             </div>
@@ -113,11 +113,11 @@ export default function UpdateBanner() {
         {info.state === 'downloaded' && (
           <>
             <span className="truncate">
-              ✅ Versio <strong>{info.version}</strong> ladattu ja valmis asennettavaksi
+              Versio <strong>{info.version}</strong> ladattu ja valmis asennettavaksi
             </span>
             <button
               onClick={() => window.api.installUpdate()}
-              className="ml-2 px-3 py-0.5 bg-blue-500 hover:bg-blue-400 text-white text-xs font-medium rounded transition-colors whitespace-nowrap"
+              className="ml-2 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors whitespace-nowrap"
             >
               Asenna &amp; käynnistä uudelleen
             </button>
@@ -126,13 +126,13 @@ export default function UpdateBanner() {
 
         {info.state === 'installError' && (
           <span className="truncate">
-            ⚠️ Asennus epäonnistui{info.message ? `: ${info.message}` : ''} — katso loki tai asenna manuaalisesti
+            Asennus epäonnistui{info.message ? `: ${info.message}` : ''} — katso loki tai asenna manuaalisesti
           </span>
         )}
 
         {info.state === 'error' && (
           <span className="truncate">
-            ⚠️ Päivitysvirhe{info.message ? `: ${info.message}` : ''}
+            Päivitysvirhe{info.message ? `: ${info.message}` : ''}
           </span>
         )}
       </div>

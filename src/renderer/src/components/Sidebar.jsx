@@ -27,42 +27,48 @@ export default function Sidebar({
     try {
       await window.api?.checkForUpdates?.()
     } finally {
-      // The UpdateBanner takes over from here via IPC events; reset button after delay
       setTimeout(() => setChecking(false), 3000)
     }
   }
 
   return (
-    <aside className="w-60 flex-shrink-0 flex flex-col h-full" style={{ background: '#060A12', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-      {/* App title — also acts as drag region for the frameless window */}
-      <div className="drag-region h-12 px-4 flex items-center gap-2.5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="no-drag flex items-center gap-2.5 cursor-pointer" onClick={onGoHome}>
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}>
-            P
+    <aside className="sidebar-shell flex flex-col h-full">
+      <div className="drag-region sidebar-brand flex-shrink-0">
+        <div className="no-drag flex items-center gap-3 cursor-pointer group min-w-0" onClick={onGoHome}>
+          <div
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)', boxShadow: '0 14px 32px rgba(37,99,235,0.24)' }}
+          >
+            PH
           </div>
-          <span className="font-semibold text-sm text-white tracking-tight">ProjectHub</span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-slate-600">IT-Veljekset</p>
+            <span className="font-semibold text-[15px] text-white tracking-tight">ProjectHub</span>
+          </div>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="px-3 pt-3">
+      <div className="px-4 pt-4">
         <button
           onClick={onOpenSearch}
-          className="no-drag w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 text-xs transition-all"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+          className="no-drag surface-card surface-card-hover w-full flex items-center gap-3 px-3.5 py-3 text-sm text-slate-400 hover:text-white transition-all"
         >
-          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <span className="flex-1 text-left">Haku</span>
-          <kbd className="text-slate-700 text-xs font-mono">⌘K</kbd>
+          <kbd className="rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 text-[11px] font-mono text-slate-500">⌘K</kbd>
         </button>
       </div>
 
-      {/* Nav */}
-      <nav className="no-drag flex-1 overflow-y-auto px-2 pt-4 pb-2">
-        {/* Dashboard */}
+      <div className="px-4 pt-4 no-drag">
+        <div className="grid grid-cols-2 gap-2">
+          <MiniSidebarStat label="Aktiiviset" value={active.length} tone="blue" />
+          <MiniSidebarStat label="Arkistoidut" value={archived.length} />
+        </div>
+      </div>
+
+      <nav className="no-drag flex-1 overflow-y-auto px-3 pt-5 pb-3">
         <NavItem
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +81,6 @@ export default function Sidebar({
           onClick={onGoHome}
         />
 
-        {/* Idea library */}
         <NavItem
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,21 +93,19 @@ export default function Sidebar({
           onClick={onOpenIdeas}
         />
 
-        {/* Projects section */}
-        <div className="mt-5 mb-1 px-2">
+        <div className="mt-6 mb-2 px-2">
           <div className="flex items-center justify-between">
             <button
               onClick={onOpenProjects}
-              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${
-                activeView === 'projects' ? 'text-blue-400' : 'text-slate-600 hover:text-slate-400'
+              className={`section-label transition-colors ${
+                activeView === 'projects' ? 'text-blue-300' : 'text-slate-600 hover:text-slate-400'
               }`}
             >
               Projektit
             </button>
             <button
               onClick={onNewProject}
-              className="w-5 h-5 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-300 transition-colors"
-              style={{ background: 'rgba(255,255,255,0.04)' }}
+              className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-200 transition-colors border border-white/10 bg-white/5 hover:bg-white/10"
               title="Uusi projekti"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,10 +116,10 @@ export default function Sidebar({
         </div>
 
         {active.length === 0 && (
-          <p className="text-xs text-slate-700 px-2 py-1.5 italic">Ei projekteja vielä</p>
+          <p className="text-xs text-slate-600 px-2 py-2 italic">Ei projekteja vielä</p>
         )}
 
-        <div className="mt-1 space-y-0.5">
+        <div className="mt-1 space-y-1">
           {active.map((project) => (
             <SidebarProjectItem
               key={project.id}
@@ -127,13 +130,12 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* Archived */}
         {archived.length > 0 && (
           <div className="mt-5">
-            <div className="px-2 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-widest text-slate-700">Arkisto</span>
+            <div className="px-2 mb-2">
+              <span className="section-label text-slate-700">Arkisto</span>
             </div>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {archived.map((project) => (
                 <SidebarProjectItem
                   key={project.id}
@@ -148,44 +150,47 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Footer */}
-      <div className="no-drag px-3 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="flex items-center gap-2 mb-2.5">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-slate-500 truncate">IT-Veljekset Group</p>
-            {version && <p className="text-xs text-slate-700">v{version}</p>}
+      <div className="no-drag px-4 pb-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="sidebar-footer-panel p-3.5">
+          <div className="flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-600">Workspace</p>
+              <p className="text-sm font-medium text-slate-200 truncate mt-1">IT-Veljekset Group</p>
+              {version && <p className="text-xs text-slate-500 mt-1">v{version}</p>}
+            </div>
+            <button
+              onClick={onOpenSettings}
+              title="Asetukset"
+              className={`p-2 rounded-xl transition-all border ${
+                activeView === 'settings'
+                  ? 'text-blue-300 bg-blue-500/10 border-blue-400/20'
+                  : 'text-slate-500 hover:text-slate-200 border-white/10 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
           </div>
+
           <button
-            onClick={onOpenSettings}
-            title="Asetukset"
-            className={`p-1.5 rounded-lg transition-all ${
-              activeView === 'settings'
-                ? 'text-blue-400 bg-blue-500/10'
-                : 'text-slate-600 hover:text-slate-300 hover:bg-white/5'
-            }`}
+            onClick={handleCheckUpdate}
+            disabled={checking}
+            className="mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-white/10 bg-white/5 hover:bg-white/10"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            {checking ? (
+              <span className="w-3.5 h-3.5 rounded-full border border-slate-400 border-t-transparent animate-spin flex-shrink-0" />
+            ) : (
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            )}
+            {checking ? 'Tarkistetaan…' : 'Tarkista päivitykset'}
           </button>
         </div>
-        <button
-          onClick={handleCheckUpdate}
-          disabled={checking}
-          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-700 hover:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-white/5"
-        >
-          {checking ? (
-            <span className="w-3 h-3 rounded-full border border-slate-500 border-t-transparent animate-spin flex-shrink-0" />
-          ) : (
-            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          )}
-          {checking ? 'Tarkistetaan…' : 'Tarkista päivitykset'}
-        </button>
       </div>
     </aside>
   )
@@ -195,21 +200,45 @@ function NavItem({ icon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-xs font-medium transition-all group relative ${
+      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all group relative border ${
         active
           ? 'text-white'
-          : 'text-slate-500 hover:text-slate-200'
+          : 'text-slate-400 hover:text-slate-100'
       }`}
-      style={active ? { background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.2)' } : {}}
+      style={active
+        ? {
+            background: 'linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(124,58,237,0.14) 100%)',
+            border: '1px solid rgba(96,165,250,0.22)',
+            boxShadow: '0 12px 24px rgba(37,99,235,0.12)'
+          }
+        : {
+            border: '1px solid transparent'
+          }}
     >
-      {active && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-blue-400" />
-      )}
-      <span className={`flex-shrink-0 transition-colors ${active ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400'}`}>
+      <span
+        className={`flex items-center justify-center w-8 h-8 rounded-xl flex-shrink-0 transition-colors ${
+          active ? 'text-blue-200' : 'text-slate-500 group-hover:text-slate-200'
+        }`}
+        style={active ? { background: 'rgba(255,255,255,0.08)' } : { background: 'rgba(255,255,255,0.04)' }}
+      >
         {icon}
       </span>
       {label}
     </button>
+  )
+}
+
+function MiniSidebarStat({ label, value, tone }) {
+  return (
+    <div
+      className="surface-card px-3 py-2.5"
+      style={tone === 'blue' ? { borderColor: 'rgba(96,165,250,0.18)' } : {}}
+    >
+      <div className={`text-base font-semibold tabular-nums ${tone === 'blue' ? 'text-blue-300' : 'text-slate-200'}`}>
+        {value}
+      </div>
+      <div className="text-[11px] text-slate-500 mt-0.5">{label}</div>
+    </div>
   )
 }
 
@@ -220,25 +249,33 @@ function SidebarProjectItem({ project, isSelected, onClick, muted }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-xs transition-all group relative ${
+      className={`w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all group relative border ${
         isSelected
           ? 'text-white'
           : muted
-          ? 'text-slate-700 hover:text-slate-400'
-          : 'text-slate-400 hover:text-slate-200'
+          ? 'text-slate-600 hover:text-slate-300'
+          : 'text-slate-400 hover:text-slate-100'
       }`}
-      style={isSelected ? { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' } : {}}
+      style={isSelected
+        ? {
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 12px 24px rgba(2,6,23,0.18)'
+          }
+        : {
+            border: '1px solid transparent'
+          }}
     >
       {isSelected && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3.5 rounded-r-full" style={{ backgroundColor: project.color || '#3B82F6' }} />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full" style={{ backgroundColor: project.color || '#3B82F6' }} />
       )}
       <span
-        className="w-2 h-2 rounded-full flex-shrink-0"
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
         style={{ backgroundColor: project.color || '#3B82F6', opacity: muted ? 0.4 : 1 }}
       />
       <span className="truncate flex-1">{project.name}</span>
       {total > 0 && (
-        <span className={`text-xs flex-shrink-0 tabular-nums ${isSelected ? 'text-slate-400' : 'text-slate-700 group-hover:text-slate-600'}`}>
+        <span className={`text-[11px] flex-shrink-0 tabular-nums px-2 py-0.5 rounded-full ${isSelected ? 'text-slate-300 bg-white/10' : 'text-slate-500 bg-white/5 group-hover:text-slate-300'}`}>
           {`${done}/${total}`}
         </span>
       )}

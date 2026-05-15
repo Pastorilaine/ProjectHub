@@ -136,22 +136,13 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Filter bar */}
-      <div className="flex items-center gap-1.5 mb-4 flex-wrap">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         {FILTERS.map((f) => (
           <button
             key={f.id}
             onClick={() => setActiveFilter(f.id)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-              activeFilter === f.id
-                ? 'text-white'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-            style={activeFilter === f.id
-              ? { background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }
-              : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }
-            }
+            className={`filter-chip ${activeFilter === f.id ? 'filter-chip--active text-white' : ''}`}
           >
             {f.label}
           </button>
@@ -163,28 +154,27 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
         )}
       </div>
 
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 flex-1 overflow-x-auto pb-4">
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex gap-4 flex-1 overflow-x-auto pb-2 min-h-0">
         {COLUMNS.map((col) => {
           const colTasks = tasksByStatus[col.id] || []
 
           return (
-            <div key={col.id} className="flex-shrink-0 w-72 flex flex-col">
-              {/* Column header */}
+            <div key={col.id} className="surface-panel flex-shrink-0 w-[320px] flex flex-col p-3 min-h-0">
               <div
-                className="flex items-center justify-between px-3 py-2.5 rounded-xl mb-3"
-                style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${col.accentBorder}` }}
+                className="flex items-center justify-between px-3 py-2.5 rounded-2xl mb-3 border"
+                style={{ background: 'rgba(255,255,255,0.04)', borderColor: col.accentBorder }}
               >
                 <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${col.dotColor}`} />
-                  <span className={`text-xs font-semibold uppercase tracking-wider ${col.color}`}>
+                  <span className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`} />
+                  <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${col.color}`}>
                     {col.label}
                   </span>
                   <span className="text-xs text-slate-600 ml-1">{colTasks.length}</span>
                 </div>
                 <button
                   onClick={() => setAddingToColumn(col.id)}
-                  className="w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:text-slate-300 hover:bg-slate-700 transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 transition-colors"
                   title="Lisää tehtävä"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,14 +183,13 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
                 </button>
               </div>
 
-              {/* Droppable task list */}
               <Droppable droppableId={col.id}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`flex-1 overflow-y-auto space-y-2 pr-0.5 min-h-16 rounded-xl p-1 transition-all ${
-                      snapshot.isDraggingOver ? 'ring-1 ring-blue-500/40' : ''
+                    className={`flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[280px] rounded-2xl p-1 transition-all ${
+                      snapshot.isDraggingOver ? 'ring-1 ring-blue-500/30' : ''
                     }`}
                     style={{ background: snapshot.isDraggingOver ? 'rgba(59,130,246,0.06)' : 'transparent' }}
                   >
@@ -231,23 +220,18 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
 
                     {provided.placeholder}
 
-                    {/* Empty state */}
                     {colTasks.length === 0 && !snapshot.isDraggingOver && (
                       <div
-                        className="rounded-xl py-6 text-center cursor-pointer transition-all"
-                        style={{ border: '2px dashed rgba(255,255,255,0.08)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.border = '2px dashed rgba(255,255,255,0.18)'}
-                        onMouseLeave={(e) => e.currentTarget.style.border = '2px dashed rgba(255,255,255,0.08)'}
+                        className="rounded-2xl border border-dashed border-white/10 py-8 text-center cursor-pointer transition-all text-slate-500 hover:border-white/20 hover:text-slate-300"
                         onClick={() => setAddingToColumn(col.id)}
                       >
-                        <p className="text-xs text-slate-600">Tyhjä — lisää tehtävä</p>
+                        Tyhjä sarake — lisää tehtävä
                       </div>
                     )}
 
-                    {/* Add task inline button */}
                     <button
                       onClick={() => setAddingToColumn(col.id)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-slate-800/50 transition-colors text-xs"
+                      className="w-full flex items-center gap-2 px-3 py-2.5 rounded-2xl border border-white/10 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 transition-colors text-xs"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -260,20 +244,19 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
             </div>
           )
         })}
-      </div>
+        </div>
 
-      {/* Create task modal */}
-      {addingToColumn && (
-        <CreateTaskModal
-          projectId={projectId}
-          initialStatus={addingToColumn}
-          tags={tags}
-          onClose={() => setAddingToColumn(null)}
-          onCreated={handleTaskCreated}
-          onTagsChanged={onTagsChanged}
-        />
-      )}
-    </DragDropContext>
+        {addingToColumn && (
+          <CreateTaskModal
+            projectId={projectId}
+            initialStatus={addingToColumn}
+            tags={tags}
+            onClose={() => setAddingToColumn(null)}
+            onCreated={handleTaskCreated}
+            onTagsChanged={onTagsChanged}
+          />
+        )}
+      </DragDropContext>
     </div>
   )
 }

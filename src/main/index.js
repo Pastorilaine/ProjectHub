@@ -41,7 +41,7 @@ function loadWindowState() {
     }
     return state
   } catch {
-    return { width: 1280, height: 820, maximized: false }
+    return { width: 1440, height: 900, maximized: false }
   }
 }
 
@@ -55,7 +55,7 @@ function saveWindowState() {
   try {
     const state = savedBounds
       ? { ...savedBounds, maximized: win.isMaximized() }
-      : { width: 1280, height: 820, maximized: false }
+      : { width: 1440, height: 900, maximized: false }
     writeFileSync(WINDOW_STATE_FILE(), JSON.stringify(state), 'utf-8')
   } catch {
     /* ignore write errors */
@@ -101,22 +101,24 @@ function createWindow() {
   const state = loadWindowState()
 
   win = new BrowserWindow({
-    width: state.width || 1280,
-    height: state.height || 820,
+    width: state.width || 1440,
+    height: state.height || 900,
     x: state.x,
     y: state.y,
-    minWidth: 900,
-    minHeight: 600,
+    center: state.x === undefined || state.y === undefined,
+    minWidth: 1100,
+    minHeight: 700,
     show: false,
     autoHideMenuBar: true,
-    backgroundColor: '#060A12',
+    backgroundColor: '#07111F',
     icon: iconPath,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
-      color: '#060A12',
-      symbolColor: '#475569',
+      color: '#07111F',
+      symbolColor: '#94A3B8',
       height: 48
     },
+    ...(process.platform === 'win32' ? { backgroundMaterial: 'mica' } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
