@@ -126,14 +126,13 @@ function createWindow() {
   })
 
   win.on('ready-to-show', () => {
-    // Maximize before show so the window appears in the correct state without
-    // a visible resize flash. On Windows, calling maximize() on a hidden window
-    // can bypass the ready-to-show guard, so we always go through this handler.
+    // Always call show() first — maximize() alone does not guarantee the window
+    // receives focus on Windows (focus-stealing prevention can block it).
+    win.show()
     if (state.maximized) {
       win.maximize()
-    } else {
-      win.show()
     }
+    win.focus()
   })
 
   // Track normal (non-maximized) bounds for state saving

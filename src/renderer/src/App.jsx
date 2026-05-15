@@ -107,7 +107,13 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-full text-slate-100" style={{ background: '#060A12' }}>
+    <div
+      className="flex flex-col h-full text-slate-100"
+      style={{
+        background: '#060A12',
+        boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.10)'
+      }}
+    >
       <UpdateBanner />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
