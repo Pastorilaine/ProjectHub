@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Tray, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, Tray, Menu, screen } from 'electron'
 import { join } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -21,7 +21,25 @@ const WINDOW_STATE_FILE = () => join(app.getPath('userData'), 'window-state.json
 
 function loadWindowState() {
   try {
-    return JSON.parse(readFileSync(WINDOW_STATE_FILE(), 'utf-8'))
+    const state = JSON.parse(readFileSync(WINDOW_STATE_FILE(), 'utf-8'))
+    // Validate that the saved position is within a visible display area.
+    // If not (e.g. a monitor was removed), drop x/y so Electron centres the window.
+    if (state.x !== undefined && state.y !== undefined) {
+      const visible = screen.getAllDisplays().some((d) => {
+        const b = d.workArea
+        return (
+          state.x >= b.x &&
+          state.y >= b.y &&
+          state.x < b.x + b.width &&
+          state.y < b.y + b.height
+        )
+      })
+      if (!visible) {
+        delete state.x
+        delete state.y
+      }
+    }
+    return state
   } catch {
     return { width: 1280, height: 820, maximized: false }
   }
@@ -70,12 +88,10 @@ function createTray() {
 
   tray.setContextMenu(menu)
   tray.on('click', () => {
-    if (win?.isVisible()) {
-      win.focus()
-    } else {
-      win?.show()
-      win?.focus()
-    }
+    if (win?.isMinimized()) win.restore()
+    if (!win?.isVisible()) win?.show()
+    win?.moveTop()
+    win?.focus()
   })
 }
 
@@ -109,9 +125,16 @@ function createWindow() {
     }
   })
 
-  if (state.maximized) win.maximize()
-
-  win.on('ready-to-show', () => win.show())
+  win.on('ready-to-show', () => {
+    // Maximize before show so the window appears in the correct state without
+    // a visible resize flash. On Windows, calling maximize() on a hidden window
+    // can bypass the ready-to-show guard, so we always go through this handler.
+    if (state.maximized) {
+      win.maximize()
+    } else {
+      win.show()
+    }
+  })
 
   // Track normal (non-maximized) bounds for state saving
   win.on('resize', () => {
@@ -145,7 +168,10 @@ function createWindow() {
 // Bring existing window to front when a second instance is launched
 app.on('second-instance', () => {
   if (win) {
+    if (win.isMinimized()) win.restore()
     if (!win.isVisible()) win.show()
+    // moveTop() is needed on Windows to overcome focus-stealing prevention
+    win.moveTop()
     win.focus()
   }
 })
