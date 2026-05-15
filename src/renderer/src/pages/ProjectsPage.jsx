@@ -25,14 +25,14 @@ export default function ProjectsPage({ projects, onOpenProject, onNewProject }) 
     <div className="flex-1 overflow-y-auto" style={{ background: '#0A0F1C' }}>
       {/* Header */}
       <div
-        className="sticky top-0 z-10 px-7 py-4 flex items-center justify-between"
+        className="sticky top-0 z-10 px-7 py-4 flex items-center justify-between drag-region"
         style={{
           background: 'rgba(10,15,28,0.92)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(255,255,255,0.06)'
         }}
       >
-        <div>
+        <div className="no-drag">
           <h1 className="text-lg font-semibold text-white tracking-tight">Projektit</h1>
           <p className="text-xs text-slate-500 mt-0.5">
             {projects.length} projekti{projects.length !== 1 ? 'a' : ''}
@@ -40,7 +40,7 @@ export default function ProjectsPage({ projects, onOpenProject, onNewProject }) 
         </div>
         <button
           onClick={onNewProject}
-          className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all hover:opacity-90 active:scale-95"
+          className="no-drag flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all hover:opacity-90 active:scale-95"
           style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

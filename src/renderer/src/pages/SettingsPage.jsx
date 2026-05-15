@@ -95,24 +95,33 @@ export default function SettingsPage({ onBack }) {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 max-w-2xl" style={{ background: '#0A0F1C' }}>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <button
-          onClick={onBack}
-          className="p-1.5 rounded-md text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
-          title="Takaisin"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-semibold text-slate-100">Asetukset</h1>
-        {saving && <span className="text-xs text-slate-500 ml-auto">Tallennetaan…</span>}
-        {!saving && savedAt && (
-          <span className="text-xs text-slate-600 ml-auto">Tallennettu ✓</span>
-        )}
+    <div className="flex flex-col h-full" style={{ background: '#0A0F1C' }}>
+      {/* Header — drag region */}
+      <div
+        className="flex-shrink-0 px-8 py-4 flex items-center gap-3 drag-region"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        <div className="no-drag flex items-center gap-3 flex-1 min-w-0">
+          <button
+            onClick={onBack}
+            className="p-1.5 rounded-md text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors flex-shrink-0"
+            title="Takaisin"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-semibold text-slate-100">Asetukset</h1>
+          {saving && <span className="text-xs text-slate-500 ml-auto">Tallennetaan…</span>}
+          {!saving && savedAt && (
+            <span className="text-xs text-slate-600 ml-auto">Tallennettu ✓</span>
+          )}
+        </div>
       </div>
+
+      {/* Scrollable settings content */}
+      <div className="flex-1 overflow-y-auto">
+      <div className="p-8 max-w-2xl">
 
       {/* ── Yleiset ─────────────────────────────────────────────────────────── */}
       <Section title="Yleiset">
@@ -203,6 +212,8 @@ export default function SettingsPage({ onBack }) {
           <span className="text-sm text-slate-500">IT-Veljekset Group</span>
         </SettingRow>
       </Section>
+      </div>
+      </div>
     </div>
   )
 }

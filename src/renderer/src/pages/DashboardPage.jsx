@@ -88,18 +88,21 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
   const { activeProjects, openTasks, inProgress, overdue, upcoming, recentProjects } = stats
 
   return (
-    <div className="p-7 max-w-5xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Yleiskatsaus</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+    <div className="flex flex-col h-full" style={{ background: '#0A0F1C' }}>
+      {/* Header — drag region matching the sidebar header height */}
+      <div
+        className="flex-shrink-0 px-7 py-4 flex items-center justify-between drag-region"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <div className="no-drag">
+          <h1 className="text-lg font-semibold text-white tracking-tight">Yleiskatsaus</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
             {new Date().toLocaleDateString('fi-FI', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <button
           onClick={onNewProject}
-          className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all hover:opacity-90 active:scale-95"
+          className="no-drag flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all hover:opacity-90 active:scale-95"
           style={{ background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,6 +111,10 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
           Uusi projekti
         </button>
       </div>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto">
+      <div className="p-7 max-w-5xl mx-auto space-y-8">
 
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -293,6 +300,8 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
           </button>
         </div>
       )}
+      </div>
+      </div>
     </div>
   )
 }
