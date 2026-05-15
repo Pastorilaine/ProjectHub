@@ -7,6 +7,7 @@ import IPC from '../../shared/ipcChannels'
 import { initAutoUpdater, installUpdate, checkForUpdates } from './updater'
 import { startDeadlineChecker } from './notifications'
 import {
+  completeOnboarding,
   createWorkspace,
   deleteWorkspace,
   getSettings,
@@ -302,6 +303,7 @@ app.whenReady().then(() => {
 
   // ── App info ───────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.APP_GET_VERSION, () => app.getVersion())
+  ipcMain.handle(IPC.APP_COMPLETE_ONBOARDING, (_, data) => completeOnboarding(data))
 
   // ── Settings ──────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.SETTINGS_GET, () => getSettings())

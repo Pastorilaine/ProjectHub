@@ -30,6 +30,7 @@ const IPC = {
 
   // App info
   APP_GET_VERSION: 'app:getVersion',
+  APP_COMPLETE_ONBOARDING: 'app:onboarding:complete',
 
   // Dashboard
   DASHBOARD_STATS: 'db:dashboard:stats',

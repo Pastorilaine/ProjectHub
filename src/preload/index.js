@@ -46,6 +46,7 @@ const api = {
 
   // App info
   getAppVersion: () => ipcRenderer.invoke(IPC.APP_GET_VERSION),
+  completeOnboarding: (data) => ipcRenderer.invoke(IPC.APP_COMPLETE_ONBOARDING, data),
 
   // User settings
   getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),

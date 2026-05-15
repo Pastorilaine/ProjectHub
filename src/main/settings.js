@@ -13,6 +13,10 @@ const DEFAULT_WORKSPACE_ID = '00000000-0000-4000-8000-000000000000'
 const DEFAULT_WORKSPACE_NAME = 'IT-Veljekset Group'
 
 export const DEFAULTS = {
+  /** Brand name shown in the sidebar and onboarding */
+  appName: 'ProjectHub',
+  /** Whether the first-run setup has been completed */
+  onboardingCompleted: true,
   /** Launch app automatically when Windows starts */
   launchAtStartup: false,
   /** Hide to tray instead of quitting when the window close button is clicked */
@@ -28,6 +32,10 @@ export const DEFAULTS = {
 
 const settingsPath = () => join(app.getPath('userData'), 'settings.json')
 const workspaceDbPath = (dbFile) => join(app.getPath('userData'), dbFile)
+
+function hasLegacyWorkspaceData() {
+  return existsSync(workspaceDbPath(LEGACY_DB_FILE))
+}
 
 function createDefaultWorkspace() {
   const now = Date.now()
@@ -59,29 +67,49 @@ function normalizeWorkspace(workspace, index) {
   }
 }
 
-function readRawSettings() {
+function readSettingsState() {
+  if (!existsSync(settingsPath())) {
+    return { raw: {}, hasSettingsFile: false }
+  }
+
   try {
-    return JSON.parse(readFileSync(settingsPath(), 'utf-8'))
+    return {
+      raw: JSON.parse(readFileSync(settingsPath(), 'utf-8')),
+      hasSettingsFile: true
+    }
   } catch {
-    return {}
+    return { raw: {}, hasSettingsFile: true }
   }
 }
 
-function normalizeSettings(raw = {}) {
+function normalizeSettings(raw = {}, { hasSettingsFile = true } = {}) {
   const base = { ...DEFAULTS, ...raw }
+  const hasWorkspaceArray = Array.isArray(raw.workspaces)
+  const legacyWorkspace = !hasWorkspaceArray && hasLegacyWorkspaceData()
+  const firstRun = !hasSettingsFile && !legacyWorkspace
 
-  const workspaces = Array.isArray(base.workspaces) && base.workspaces.length > 0
+  const workspaces = hasWorkspaceArray && base.workspaces.length > 0
     ? base.workspaces.map(normalizeWorkspace)
-    : [createDefaultWorkspace()]
+    : legacyWorkspace
+    ? [createDefaultWorkspace()]
+    : []
 
   const activeWorkspaceId = workspaces.some((workspace) => workspace.id === base.activeWorkspaceId)
     ? base.activeWorkspaceId
-    : workspaces[0].id
+    : workspaces[0]?.id || null
 
-  const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId) || workspaces[0]
+  const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null
+  const appName = typeof raw.appName === 'string' && raw.appName.trim()
+    ? raw.appName.trim()
+    : DEFAULTS.appName
+  const onboardingCompleted = typeof raw.onboardingCompleted === 'boolean'
+    ? raw.onboardingCompleted
+    : !firstRun
 
   return {
     ...base,
+    appName,
+    onboardingCompleted,
     workspaces,
     activeWorkspaceId,
     activeWorkspace
@@ -110,7 +138,8 @@ function persist(buildNext) {
 
 /** Returns current settings merged over defaults. Never throws. */
 export function getSettings() {
-  return normalizeSettings(readRawSettings())
+  const { raw, hasSettingsFile } = readSettingsState()
+  return normalizeSettings(raw, { hasSettingsFile })
 }
 
 export function getActiveWorkspace() {
@@ -126,6 +155,39 @@ export function saveSettings(partial) {
     ...serializeSettings(current),
     ...partial
   }))
+}
+
+export function completeOnboarding({ appName, workspaceName }) {
+  const trimmedAppName = typeof appName === 'string' ? appName.trim() : ''
+  const trimmedWorkspaceName = typeof workspaceName === 'string' ? workspaceName.trim() : ''
+
+  if (!trimmedAppName) throw new Error('Application name is required')
+  if (!trimmedWorkspaceName) throw new Error('Workspace name is required')
+
+  return persist((current) => {
+    const now = Date.now()
+    const workspaceId = randomUUID()
+    const firstWorkspace = {
+      id: workspaceId,
+      name: trimmedWorkspaceName,
+      dbFile: `projecthub-workspace-${workspaceId}.db`,
+      createdAt: now,
+      updatedAt: now
+    }
+
+    const workspaces = current.workspaces.length > 0 ? current.workspaces : [firstWorkspace]
+    const activeWorkspaceId = workspaces.some((workspace) => workspace.id === current.activeWorkspaceId)
+      ? current.activeWorkspaceId
+      : workspaces[0].id
+
+    return {
+      ...serializeSettings(current),
+      appName: trimmedAppName,
+      onboardingCompleted: true,
+      workspaces,
+      activeWorkspaceId
+    }
+  })
 }
 
 export function createWorkspace({ name }) {

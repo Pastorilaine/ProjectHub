@@ -353,6 +353,32 @@ body::before {
   backdrop-filter: blur(16px) saturate(150%);
 }
 
+.first-run-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.first-run-card {
+  width: 100%;
+  max-width: 720px;
+  padding: 34px;
+  position: relative;
+  overflow: hidden;
+}
+
+.first-run-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.18), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.14), transparent 24%);
+}
+
 .window-controls-shell {
   position: absolute;
   top: 8px;

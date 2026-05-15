@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 export default function Sidebar({
+  appName,
   projects,
   workspaces,
   activeWorkspace,
@@ -46,7 +47,7 @@ export default function Sidebar({
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-slate-600">Desktop app</p>
-            <span className="font-semibold text-[15px] text-white tracking-tight">ProjectHub</span>
+            <span className="font-semibold text-[15px] text-white tracking-tight truncate block">{appName || 'ProjectHub'}</span>
           </div>
         </div>
       </div>

@@ -56,6 +56,7 @@ export default function SettingsPage({
   onSetActiveWorkspace
 }) {
   const [draftSettings, setDraftSettings] = useState(settings)
+  const [appNameDraft, setAppNameDraft] = useState(settings?.appName || 'ProjectHub')
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState(null)
   const [version, setVersion] = useState('')
@@ -66,6 +67,7 @@ export default function SettingsPage({
 
   useEffect(() => {
     setDraftSettings(settings)
+    setAppNameDraft(settings?.appName || 'ProjectHub')
   }, [settings])
 
   useEffect(() => {
@@ -105,6 +107,26 @@ export default function SettingsPage({
       setWorkspaceError(err?.message || 'Workspacen luonti epäonnistui.')
     } finally {
       setCreatingWorkspace(false)
+    }
+  }
+
+  const handleSaveAppName = async () => {
+    const trimmed = appNameDraft.trim()
+    if (!trimmed) {
+      setWorkspaceError('Anna sovellukselle nimi.')
+      return
+    }
+
+    setWorkspaceError('')
+    setSaving(true)
+    try {
+      const saved = await onSaveSettings?.({ appName: trimmed })
+      if (saved) setDraftSettings(saved)
+      setSavedAt(Date.now())
+    } catch (err) {
+      setWorkspaceError(err?.message || 'Sovelluksen nimen tallennus epäonnistui.')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -201,6 +223,27 @@ export default function SettingsPage({
                   {workspaceError}
                 </div>
               )}
+
+              <div className="surface-card mb-4 p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Sovelluksen nimi</label>
+                    <input
+                      value={appNameDraft}
+                      onChange={(e) => setAppNameDraft(e.target.value)}
+                      placeholder="Esim. Studio Hub"
+                      className="input-shell w-full px-3 py-2.5 text-sm outline-none"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSaveAppName}
+                    disabled={saving || !appNameDraft.trim() || appNameDraft.trim() === (settings?.appName || 'ProjectHub')}
+                    className="secondary-button disabled:opacity-50"
+                  >
+                    Tallenna nimi
+                  </button>
+                </div>
+              </div>
 
               <div className="surface-card mb-4 p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center">

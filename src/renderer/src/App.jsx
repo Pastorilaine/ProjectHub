@@ -9,6 +9,7 @@ import SearchModal from './components/SearchModal'
 import CreateProjectModal from './components/CreateProjectModal'
 import UpdateBanner from './components/UpdateBanner'
 import WindowControls from './components/WindowControls'
+import FirstRunSetup from './components/FirstRunSetup'
 
 export default function App() {
   const [view, setView] = useState('dashboard') // 'dashboard' | 'projects' | 'project-detail' | 'settings' | 'ideas'
@@ -21,6 +22,7 @@ export default function App() {
   const [showSearch, setShowSearch] = useState(false)
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [completingOnboarding, setCompletingOnboarding] = useState(false)
 
   const activeWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
@@ -38,9 +40,12 @@ export default function App() {
     try {
       const snapshot = await window.api.getSettings()
       applySettingsSnapshot(snapshot)
+      return snapshot
     } catch (err) {
       console.error('Failed to load settings:', err)
-      applySettingsSnapshot({ workspaces: [], activeWorkspaceId: null })
+      const fallback = { appName: 'ProjectHub', onboardingCompleted: false, workspaces: [], activeWorkspaceId: null }
+      applySettingsSnapshot(fallback)
+      return fallback
     }
   }, [applySettingsSnapshot])
 
@@ -63,7 +68,28 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    Promise.all([loadSettings(), loadProjects(), loadTags()]).finally(() => setLoading(false))
+    let cancelled = false
+
+    const bootstrap = async () => {
+      const snapshot = await loadSettings()
+
+      if (cancelled) return
+
+      if (snapshot?.onboardingCompleted && snapshot?.activeWorkspaceId) {
+        await Promise.all([loadProjects(), loadTags()])
+      } else {
+        setProjects([])
+        setTags([])
+      }
+
+      if (!cancelled) setLoading(false)
+    }
+
+    bootstrap()
+
+    return () => {
+      cancelled = true
+    }
   }, [loadSettings, loadProjects, loadTags])
 
   // Global keyboard shortcut: Ctrl/Cmd+K for search
@@ -167,10 +193,21 @@ export default function App() {
     return snapshot
   }, [refreshWorkspaceData])
 
+  const handleCompleteOnboarding = useCallback(async ({ appName, workspaceName }) => {
+    setCompletingOnboarding(true)
+    try {
+      const snapshot = await window.api.completeOnboarding({ appName, workspaceName })
+      setView('dashboard')
+      await refreshWorkspaceData(snapshot)
+      return snapshot
+    } finally {
+      setCompletingOnboarding(false)
+    }
+  }, [refreshWorkspaceData])
+
   if (loading) {
     return (
       <div className="app-shell flex h-full items-center justify-center text-slate-400">
-        <WindowControls />
         <div className="surface-card flex items-center gap-3 px-5 py-4">
           <svg className="animate-spin w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -178,16 +215,26 @@ export default function App() {
           </svg>
           <span className="text-sm">Ladataan ProjectHubia...</span>
         </div>
+        <WindowControls />
       </div>
     )
   }
 
+  const needsOnboarding = !settings?.onboardingCompleted || !activeWorkspaceId || workspaces.length === 0
+
   return (
     <div className="app-shell flex flex-col h-full text-slate-100">
-      <WindowControls />
       <UpdateBanner />
-      <div className="flex flex-1 overflow-hidden min-h-0">
+      {needsOnboarding ? (
+        <FirstRunSetup
+          initialAppName={settings?.appName || 'ProjectHub'}
+          onComplete={handleCompleteOnboarding}
+          busy={completingOnboarding}
+        />
+      ) : (
+        <div className="flex flex-1 overflow-hidden min-h-0">
         <Sidebar
+          appName={settings?.appName || 'ProjectHub'}
           projects={projects}
           workspaces={workspaces}
           activeWorkspace={activeWorkspace}
@@ -247,9 +294,10 @@ export default function App() {
             <IdeaLibraryPage key={`ideas-${activeWorkspaceId || 'default'}`} projects={projects} />
           )}
         </main>
-      </div>
+        </div>
+      )}
 
-      {showSearch && (
+      {showSearch && !needsOnboarding && (
         <SearchModal
           onClose={() => setShowSearch(false)}
           onOpenProject={(project) => {
@@ -263,12 +311,14 @@ export default function App() {
         />
       )}
 
-      {showCreateProject && (
+      {showCreateProject && !needsOnboarding && (
         <CreateProjectModal
           onClose={() => setShowCreateProject(false)}
           onCreated={handleProjectCreated}
         />
       )}
+
+      <WindowControls />
     </div>
   )
 }
