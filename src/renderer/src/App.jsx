@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Sidebar from './components/Sidebar'
 import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
@@ -8,15 +8,41 @@ import IdeaLibraryPage from './pages/IdeaLibraryPage'
 import SearchModal from './components/SearchModal'
 import CreateProjectModal from './components/CreateProjectModal'
 import UpdateBanner from './components/UpdateBanner'
+import WindowControls from './components/WindowControls'
 
 export default function App() {
   const [view, setView] = useState('dashboard') // 'dashboard' | 'projects' | 'project-detail' | 'settings' | 'ideas'
   const [projects, setProjects] = useState([])
   const [selectedProject, setSelectedProject] = useState(null)
+  const [settings, setSettings] = useState(null)
+  const [workspaces, setWorkspaces] = useState([])
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState(null)
   const [tags, setTags] = useState([])
   const [showSearch, setShowSearch] = useState(false)
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [loading, setLoading] = useState(true)
+
+  const activeWorkspace = useMemo(
+    () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
+    [activeWorkspaceId, workspaces]
+  )
+
+  const applySettingsSnapshot = useCallback((snapshot) => {
+    if (!snapshot) return
+    setSettings(snapshot)
+    setWorkspaces(Array.isArray(snapshot.workspaces) ? snapshot.workspaces : [])
+    setActiveWorkspaceId(snapshot.activeWorkspaceId || null)
+  }, [])
+
+  const loadSettings = useCallback(async () => {
+    try {
+      const snapshot = await window.api.getSettings()
+      applySettingsSnapshot(snapshot)
+    } catch (err) {
+      console.error('Failed to load settings:', err)
+      applySettingsSnapshot({ workspaces: [], activeWorkspaceId: null })
+    }
+  }, [applySettingsSnapshot])
 
   const loadProjects = useCallback(async () => {
     try {
@@ -37,8 +63,8 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    Promise.all([loadProjects(), loadTags()]).finally(() => setLoading(false))
-  }, [loadProjects, loadTags])
+    Promise.all([loadSettings(), loadProjects(), loadTags()]).finally(() => setLoading(false))
+  }, [loadSettings, loadProjects, loadTags])
 
   // Global keyboard shortcut: Ctrl/Cmd+K for search
   useEffect(() => {
@@ -100,9 +126,51 @@ export default function App() {
     goHome()
   }
 
+  const refreshWorkspaceData = useCallback(async (snapshot) => {
+    applySettingsSnapshot(snapshot)
+    setSelectedProject(null)
+    setShowSearch(false)
+    setShowCreateProject(false)
+    if (view === 'project-detail') {
+      setView('dashboard')
+    }
+    await Promise.all([loadProjects(), loadTags()])
+  }, [applySettingsSnapshot, loadProjects, loadTags, view])
+
+  const handleSaveSettings = useCallback(async (partial) => {
+    const saved = await window.api.saveSettings(partial)
+    applySettingsSnapshot(saved)
+    return saved
+  }, [applySettingsSnapshot])
+
+  const handleCreateWorkspace = useCallback(async (name) => {
+    const snapshot = await window.api.createWorkspace({ name })
+    await refreshWorkspaceData(snapshot)
+    return snapshot
+  }, [refreshWorkspaceData])
+
+  const handleUpdateWorkspace = useCallback(async (id, name) => {
+    const snapshot = await window.api.updateWorkspace({ id, name })
+    applySettingsSnapshot(snapshot)
+    return snapshot
+  }, [applySettingsSnapshot])
+
+  const handleDeleteWorkspace = useCallback(async (id) => {
+    const snapshot = await window.api.deleteWorkspace(id)
+    await refreshWorkspaceData(snapshot)
+    return snapshot
+  }, [refreshWorkspaceData])
+
+  const handleSetActiveWorkspace = useCallback(async (id) => {
+    const snapshot = await window.api.setActiveWorkspace(id)
+    await refreshWorkspaceData(snapshot)
+    return snapshot
+  }, [refreshWorkspaceData])
+
   if (loading) {
     return (
       <div className="app-shell flex h-full items-center justify-center text-slate-400">
+        <WindowControls />
         <div className="surface-card flex items-center gap-3 px-5 py-4">
           <svg className="animate-spin w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -116,10 +184,13 @@ export default function App() {
 
   return (
     <div className="app-shell flex flex-col h-full text-slate-100">
+      <WindowControls />
       <UpdateBanner />
       <div className="flex flex-1 overflow-hidden min-h-0">
         <Sidebar
           projects={projects}
+          workspaces={workspaces}
+          activeWorkspace={activeWorkspace}
           selectedProject={selectedProject}
           onSelectProject={openProject}
           onGoHome={goDashboard}
@@ -128,18 +199,21 @@ export default function App() {
           onOpenSettings={() => setView('settings')}
           onOpenProjects={goHome}
           onOpenIdeas={goIdeas}
+          onSwitchWorkspace={handleSetActiveWorkspace}
           activeView={view}
         />
 
         <main className="main-shell flex-1 overflow-hidden flex flex-col min-w-0">
           {view === 'dashboard' && (
             <DashboardPage
+              key={`dashboard-${activeWorkspaceId || 'default'}`}
               onOpenProject={openProjectById}
               onNewProject={() => setShowCreateProject(true)}
             />
           )}
           {view === 'projects' && (
             <ProjectsPage
+              key={`projects-${activeWorkspaceId || 'default'}`}
               projects={projects}
               onOpenProject={openProject}
               onNewProject={() => setShowCreateProject(true)}
@@ -157,10 +231,20 @@ export default function App() {
             />
           )}
           {view === 'settings' && (
-            <SettingsPage onBack={goDashboard} />
+            <SettingsPage
+              onBack={goDashboard}
+              settings={settings}
+              workspaces={workspaces}
+              activeWorkspaceId={activeWorkspaceId}
+              onSaveSettings={handleSaveSettings}
+              onCreateWorkspace={handleCreateWorkspace}
+              onRenameWorkspace={handleUpdateWorkspace}
+              onDeleteWorkspace={handleDeleteWorkspace}
+              onSetActiveWorkspace={handleSetActiveWorkspace}
+            />
           )}
           {view === 'ideas' && (
-            <IdeaLibraryPage projects={projects} />
+            <IdeaLibraryPage key={`ideas-${activeWorkspaceId || 'default'}`} projects={projects} />
           )}
         </main>
       </div>

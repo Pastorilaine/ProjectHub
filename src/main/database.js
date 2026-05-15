@@ -3,19 +3,34 @@ import { join } from 'path'
 import { app } from 'electron'
 import { v4 as uuidv4 } from 'uuid'
 import { runMigrations } from './migrations'
+import { getActiveWorkspace } from './settings'
 
 let db
+let currentDbPath
 
 function getDb() {
-  if (!db) {
-    const dbPath = join(app.getPath('userData'), 'projecthub.db')
+  const dbPath = resolveDbPath()
+
+  if (!db || currentDbPath !== dbPath) {
+    if (db) {
+      db.close()
+      db = null
+    }
+
     db = new Database(dbPath)
+    currentDbPath = dbPath
     db.pragma('journal_mode = WAL')
     db.pragma('foreign_keys = ON')
     initializeSchema()
     runMigrations(db)
   }
   return db
+}
+
+function resolveDbPath() {
+  const workspace = getActiveWorkspace()
+  const dbFile = workspace?.dbFile || 'projecthub.db'
+  return join(app.getPath('userData'), dbFile)
 }
 
 function initializeSchema() {

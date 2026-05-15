@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 
 export default function Sidebar({
   projects,
+  workspaces,
+  activeWorkspace,
   selectedProject,
   onSelectProject,
   onGoHome,
@@ -10,6 +12,7 @@ export default function Sidebar({
   onNewProject,
   onOpenSettings,
   onOpenIdeas,
+  onSwitchWorkspace,
   activeView
 }) {
   const active = projects.filter((p) => p.status === 'active')
@@ -42,7 +45,7 @@ export default function Sidebar({
             PH
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-slate-600">IT-Veljekset</p>
+            <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-slate-600">Desktop app</p>
             <span className="font-semibold text-[15px] text-white tracking-tight">ProjectHub</span>
           </div>
         </div>
@@ -155,8 +158,11 @@ export default function Sidebar({
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-600">Workspace</p>
-              <p className="text-sm font-medium text-slate-200 truncate mt-1">IT-Veljekset Group</p>
-              {version && <p className="text-xs text-slate-500 mt-1">v{version}</p>}
+              <p className="text-sm font-medium text-slate-200 truncate mt-1">{activeWorkspace?.name || 'Ei workspacea'}</p>
+              <p className="text-xs text-slate-500 mt-1">
+                {Array.isArray(workspaces) ? `${workspaces.length} ${workspaces.length === 1 ? 'workspace' : 'workspacea'}` : '0 workspacea'}
+                {version ? ` · v${version}` : ''}
+              </p>
             </div>
             <button
               onClick={onOpenSettings}
@@ -174,6 +180,35 @@ export default function Sidebar({
               </svg>
             </button>
           </div>
+
+          {Array.isArray(workspaces) && workspaces.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {workspaces.map((workspace) => {
+                const isActiveWorkspace = workspace.id === activeWorkspace?.id
+
+                return (
+                  <button
+                    key={workspace.id}
+                    onClick={() => {
+                      if (!isActiveWorkspace) onSwitchWorkspace?.(workspace.id)
+                    }}
+                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left text-xs transition-all border ${
+                      isActiveWorkspace
+                        ? 'bg-blue-500/10 border-blue-400/20 text-blue-100'
+                        : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <span className="truncate">{workspace.name}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                      isActiveWorkspace ? 'bg-blue-400/15 text-blue-200' : 'bg-white/5 text-slate-500'
+                    }`}>
+                      {isActiveWorkspace ? 'Aktiivinen' : 'Vaihda'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
           <button
             onClick={handleCheckUpdate}

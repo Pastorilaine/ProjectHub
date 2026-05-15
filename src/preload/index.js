@@ -51,6 +51,18 @@ const api = {
   getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
   saveSettings: (data) => ipcRenderer.invoke(IPC.SETTINGS_SAVE, data),
 
+  // Workspaces
+  createWorkspace: (data) => ipcRenderer.invoke(IPC.WORKSPACES_CREATE, data),
+  updateWorkspace: (data) => ipcRenderer.invoke(IPC.WORKSPACES_UPDATE, data),
+  deleteWorkspace: (id) => ipcRenderer.invoke(IPC.WORKSPACES_DELETE, id),
+  setActiveWorkspace: (id) => ipcRenderer.invoke(IPC.WORKSPACES_SET_ACTIVE, id),
+
+  // Window controls
+  getWindowState: () => ipcRenderer.invoke(IPC.WINDOW_GET_STATE),
+  minimizeWindow: () => ipcRenderer.invoke(IPC.WINDOW_MINIMIZE),
+  toggleMaximizeWindow: () => ipcRenderer.invoke(IPC.WINDOW_TOGGLE_MAXIMIZE),
+  closeWindow: () => ipcRenderer.invoke(IPC.WINDOW_CLOSE),
+
   // Auto-updater — push events from main to renderer
   // Each returns a cleanup function to remove the listener.
   onUpdateChecking: (cb) => {
@@ -87,6 +99,11 @@ const api = {
     const fn = (_, data) => cb(data)
     ipcRenderer.on('update:error', fn)
     return () => ipcRenderer.removeListener('update:error', fn)
+  },
+  onWindowStateChanged: (cb) => {
+    const fn = (_, data) => cb(data)
+    ipcRenderer.on('window:stateChanged', fn)
+    return () => ipcRenderer.removeListener('window:stateChanged', fn)
   }
 }
 

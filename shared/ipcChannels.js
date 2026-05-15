@@ -41,9 +41,21 @@ const IPC = {
   IDEAS_DELETE: 'db:ideas:delete',
   IDEAS_UPDATE_STATUS: 'db:ideas:updateStatus',
 
+  // Workspaces
+  WORKSPACES_CREATE: 'app:workspaces:create',
+  WORKSPACES_UPDATE: 'app:workspaces:update',
+  WORKSPACES_DELETE: 'app:workspaces:delete',
+  WORKSPACES_SET_ACTIVE: 'app:workspaces:setActive',
+
   // User settings
   SETTINGS_GET: 'app:settings:get',
-  SETTINGS_SAVE: 'app:settings:save'
+  SETTINGS_SAVE: 'app:settings:save',
+
+  // Window controls
+  WINDOW_GET_STATE: 'window:getState',
+  WINDOW_MINIMIZE: 'window:minimize',
+  WINDOW_TOGGLE_MAXIMIZE: 'window:toggleMaximize',
+  WINDOW_CLOSE: 'window:close'
 }
 
 export default IPC

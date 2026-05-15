@@ -14,8 +14,8 @@
   --window-text: #f8fafc;
   --window-muted: #94a3b8;
   --window-subtle: #64748b;
-  --titlebar-height: 48px;
-  --window-controls-width: 154px;
+  --titlebar-height: 44px;
+  --window-controls-width: 124px;
   --page-padding-x: 28px;
   --page-padding-y: 28px;
   --shadow-soft: 0 16px 48px rgba(2, 6, 23, 0.28);
@@ -353,6 +353,51 @@ body::before {
   backdrop-filter: blur(16px) saturate(150%);
 }
 
+.window-controls-shell {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: linear-gradient(180deg, rgba(9, 15, 28, 0.9) 0%, rgba(5, 9, 20, 0.82) 100%);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+.window-control-button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #a8b6cb;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.window-control-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #f8fafc;
+}
+
+.window-control-button:active {
+  transform: translateY(1px);
+}
+
+.window-control-button--danger:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(248, 113, 113, 0.28);
+  color: #fee2e2;
+}
+
 /* Drag region for frameless window */
 .drag-region {
   -webkit-app-region: drag;
@@ -365,7 +410,7 @@ body::before {
   :root {
     --page-padding-x: 22px;
     --page-padding-y: 22px;
-    --window-controls-width: 132px;
+    --window-controls-width: 116px;
   }
 
   .sidebar-shell {

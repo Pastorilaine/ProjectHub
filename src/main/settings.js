@@ -3,9 +3,14 @@
  * All fields have safe defaults so the file is optional.
  */
 
+import { randomUUID } from 'crypto'
 import { app } from 'electron'
 import { join } from 'path'
-import { readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+
+const LEGACY_DB_FILE = 'projecthub.db'
+const DEFAULT_WORKSPACE_ID = '00000000-0000-4000-8000-000000000000'
+const DEFAULT_WORKSPACE_NAME = 'IT-Veljekset Group'
 
 export const DEFAULTS = {
   /** Launch app automatically when Windows starts */
@@ -15,19 +20,101 @@ export const DEFAULTS = {
   /** Show Windows toast notifications for upcoming/overdue tasks */
   deadlineNotifications: true,
   /** How many hours ahead to warn about a deadline */
-  notificationAdvanceHours: 24
+  notificationAdvanceHours: 24,
+  /** Workspace registry */
+  workspaces: [],
+  activeWorkspaceId: null
 }
 
 const settingsPath = () => join(app.getPath('userData'), 'settings.json')
+const workspaceDbPath = (dbFile) => join(app.getPath('userData'), dbFile)
+
+function createDefaultWorkspace() {
+  const now = Date.now()
+  return {
+    id: DEFAULT_WORKSPACE_ID,
+    name: DEFAULT_WORKSPACE_NAME,
+    dbFile: LEGACY_DB_FILE,
+    createdAt: now,
+    updatedAt: now
+  }
+}
+
+function normalizeWorkspace(workspace, index) {
+  const now = Date.now()
+  const id = typeof workspace?.id === 'string' && workspace.id.trim()
+    ? workspace.id.trim()
+    : randomUUID()
+
+  return {
+    id,
+    name: typeof workspace?.name === 'string' && workspace.name.trim()
+      ? workspace.name.trim()
+      : `Workspace ${index + 1}`,
+    dbFile: typeof workspace?.dbFile === 'string' && workspace.dbFile.trim()
+      ? workspace.dbFile.trim()
+      : `projecthub-workspace-${id}.db`,
+    createdAt: Number.isFinite(workspace?.createdAt) ? workspace.createdAt : now,
+    updatedAt: Number.isFinite(workspace?.updatedAt) ? workspace.updatedAt : now
+  }
+}
+
+function readRawSettings() {
+  try {
+    return JSON.parse(readFileSync(settingsPath(), 'utf-8'))
+  } catch {
+    return {}
+  }
+}
+
+function normalizeSettings(raw = {}) {
+  const base = { ...DEFAULTS, ...raw }
+
+  const workspaces = Array.isArray(base.workspaces) && base.workspaces.length > 0
+    ? base.workspaces.map(normalizeWorkspace)
+    : [createDefaultWorkspace()]
+
+  const activeWorkspaceId = workspaces.some((workspace) => workspace.id === base.activeWorkspaceId)
+    ? base.activeWorkspaceId
+    : workspaces[0].id
+
+  const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId) || workspaces[0]
+
+  return {
+    ...base,
+    workspaces,
+    activeWorkspaceId,
+    activeWorkspace
+  }
+}
+
+function serializeSettings(settings) {
+  const { activeWorkspace, ...persisted } = settings
+  return persisted
+}
+
+function writeSettings(settings) {
+  writeFileSync(settingsPath(), JSON.stringify(serializeSettings(settings), null, 2), 'utf-8')
+}
+
+function persist(buildNext) {
+  const current = getSettings()
+  const next = normalizeSettings(buildNext(current))
+  try {
+    writeSettings(next)
+  } catch (err) {
+    console.error('[settings] Failed to write settings:', err)
+  }
+  return next
+}
 
 /** Returns current settings merged over defaults. Never throws. */
 export function getSettings() {
-  try {
-    const raw = JSON.parse(readFileSync(settingsPath(), 'utf-8'))
-    return { ...DEFAULTS, ...raw }
-  } catch {
-    return { ...DEFAULTS }
-  }
+  return normalizeSettings(readRawSettings())
+}
+
+export function getActiveWorkspace() {
+  return getSettings().activeWorkspace
 }
 
 /**
@@ -35,11 +122,89 @@ export function getSettings() {
  * full updated settings object.
  */
 export function saveSettings(partial) {
-  const next = { ...getSettings(), ...partial }
-  try {
-    writeFileSync(settingsPath(), JSON.stringify(next, null, 2), 'utf-8')
-  } catch (err) {
-    console.error('[settings] Failed to write settings:', err)
+  return persist((current) => ({
+    ...serializeSettings(current),
+    ...partial
+  }))
+}
+
+export function createWorkspace({ name }) {
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+  if (!trimmedName) throw new Error('Workspace name is required')
+
+  return persist((current) => {
+    const now = Date.now()
+    const id = randomUUID()
+    const workspace = {
+      id,
+      name: trimmedName,
+      dbFile: `projecthub-workspace-${id}.db`,
+      createdAt: now,
+      updatedAt: now
+    }
+
+    return {
+      ...serializeSettings(current),
+      workspaces: [...current.workspaces, workspace],
+      activeWorkspaceId: id
+    }
+  })
+}
+
+export function updateWorkspace({ id, name }) {
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+  if (!trimmedName) throw new Error('Workspace name is required')
+
+  return persist((current) => {
+    const exists = current.workspaces.some((workspace) => workspace.id === id)
+    if (!exists) throw new Error('Workspace not found')
+
+    return {
+      ...serializeSettings(current),
+      workspaces: current.workspaces.map((workspace) => (
+        workspace.id === id
+          ? { ...workspace, name: trimmedName, updatedAt: Date.now() }
+          : workspace
+      ))
+    }
+  })
+}
+
+export function setActiveWorkspace(id) {
+  return persist((current) => {
+    const exists = current.workspaces.some((workspace) => workspace.id === id)
+    if (!exists) throw new Error('Workspace not found')
+
+    return {
+      ...serializeSettings(current),
+      activeWorkspaceId: id
+    }
+  })
+}
+
+export function deleteWorkspace(id) {
+  const current = getSettings()
+  if (current.workspaces.length <= 1) {
+    throw new Error('At least one workspace must remain')
   }
+  if (current.activeWorkspaceId === id) {
+    throw new Error('Switch to another workspace before deleting this one')
+  }
+
+  const target = current.workspaces.find((workspace) => workspace.id === id)
+  if (!target) throw new Error('Workspace not found')
+
+  const next = persist((settings) => ({
+    ...serializeSettings(settings),
+    workspaces: settings.workspaces.filter((workspace) => workspace.id !== id)
+  }))
+
+  try {
+    const dbFilePath = workspaceDbPath(target.dbFile)
+    if (existsSync(dbFilePath)) unlinkSync(dbFilePath)
+  } catch (err) {
+    console.error('[settings] Failed to delete workspace database:', err)
+  }
+
   return next
 }

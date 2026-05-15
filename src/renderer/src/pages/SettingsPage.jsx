@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 function Toggle({ checked, onChange, disabled }) {
   return (
@@ -44,33 +44,107 @@ function SectionCard({ title, description, children }) {
   )
 }
 
-export default function SettingsPage({ onBack }) {
-  const [settings, setSettings] = useState(null)
+export default function SettingsPage({
+  onBack,
+  settings,
+  workspaces,
+  activeWorkspaceId,
+  onSaveSettings,
+  onCreateWorkspace,
+  onRenameWorkspace,
+  onDeleteWorkspace,
+  onSetActiveWorkspace
+}) {
+  const [draftSettings, setDraftSettings] = useState(settings)
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState(null)
   const [version, setVersion] = useState('')
+  const [newWorkspaceName, setNewWorkspaceName] = useState('')
+  const [workspaceError, setWorkspaceError] = useState('')
+  const [workspaceBusyId, setWorkspaceBusyId] = useState('')
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
   useEffect(() => {
-    window.api?.getSettings?.().then(setSettings).catch(() => setSettings({}))
+    setDraftSettings(settings)
+  }, [settings])
+
+  useEffect(() => {
     window.api?.getAppVersion?.().then(setVersion).catch(() => {})
   }, [])
 
   const update = async (key, value) => {
-    const optimistic = { ...settings, [key]: value }
-    setSettings(optimistic)
+    const optimistic = { ...draftSettings, [key]: value }
+    setDraftSettings(optimistic)
     setSaving(true)
     try {
-      const saved = await window.api?.saveSettings({ [key]: value })
-      if (saved) setSettings(saved)
+      const saved = await onSaveSettings?.({ [key]: value })
+      if (saved) setDraftSettings(saved)
       setSavedAt(Date.now())
     } catch (err) {
+      setDraftSettings(settings)
       console.error('[settings] save failed', err)
     } finally {
       setSaving(false)
     }
   }
 
-  if (!settings) {
+  const handleCreateWorkspace = async () => {
+    const name = newWorkspaceName.trim()
+    if (!name) {
+      setWorkspaceError('Anna uudelle workspacelle nimi.')
+      return
+    }
+
+    setWorkspaceError('')
+    setCreatingWorkspace(true)
+
+    try {
+      await onCreateWorkspace?.(name)
+      setNewWorkspaceName('')
+    } catch (err) {
+      setWorkspaceError(err?.message || 'Workspacen luonti epäonnistui.')
+    } finally {
+      setCreatingWorkspace(false)
+    }
+  }
+
+  const handleRenameWorkspace = async (id, name) => {
+    setWorkspaceError('')
+    setWorkspaceBusyId(id)
+    try {
+      await onRenameWorkspace?.(id, name)
+    } catch (err) {
+      setWorkspaceError(err?.message || 'Workspacen nimeäminen epäonnistui.')
+    } finally {
+      setWorkspaceBusyId('')
+    }
+  }
+
+  const handleActivateWorkspace = async (id) => {
+    setWorkspaceError('')
+    setWorkspaceBusyId(id)
+    try {
+      await onSetActiveWorkspace?.(id)
+    } catch (err) {
+      setWorkspaceError(err?.message || 'Workspacen vaihto epäonnistui.')
+    } finally {
+      setWorkspaceBusyId('')
+    }
+  }
+
+  const handleDeleteWorkspace = async (id) => {
+    setWorkspaceError('')
+    setWorkspaceBusyId(id)
+    try {
+      await onDeleteWorkspace?.(id)
+    } catch (err) {
+      setWorkspaceError(err?.message || 'Workspacen poisto epäonnistui.')
+    } finally {
+      setWorkspaceBusyId('')
+    }
+  }
+
+  if (!draftSettings) {
     return (
       <div className="page-shell items-center justify-center text-slate-400">
         <div className="surface-card px-5 py-4">Ladataan asetuksia…</div>
@@ -121,13 +195,57 @@ export default function SettingsPage({ onBack }) {
       <div className="page-content">
         <div className="page-content-inner">
           <div className="page-content-narrow space-y-5">
+            <SectionCard title="Workspacet" description="Jokaisella workspacella on oma paikallinen SQLite-tietokanta. Näin eri asiakkaiden tai tiimien työt pysyvät erillään.">
+              {workspaceError && (
+                <div className="mb-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                  {workspaceError}
+                </div>
+              )}
+
+              <div className="surface-card mb-4 p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Uusi workspace</label>
+                    <input
+                      value={newWorkspaceName}
+                      onChange={(e) => setNewWorkspaceName(e.target.value)}
+                      placeholder="Esim. Asiakas A tai Oma yritys"
+                      className="input-shell w-full px-3 py-2.5 text-sm outline-none"
+                    />
+                  </div>
+                  <button
+                    onClick={handleCreateWorkspace}
+                    disabled={creatingWorkspace || !newWorkspaceName.trim()}
+                    className="primary-button md:self-end disabled:opacity-50"
+                  >
+                    {creatingWorkspace ? 'Luodaan…' : 'Luo workspace'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {workspaces.map((workspace) => (
+                  <WorkspaceRow
+                    key={workspace.id}
+                    workspace={workspace}
+                    isActive={workspace.id === activeWorkspaceId}
+                    canDelete={workspaces.length > 1 && workspace.id !== activeWorkspaceId}
+                    busy={workspaceBusyId === workspace.id}
+                    onRename={handleRenameWorkspace}
+                    onActivate={handleActivateWorkspace}
+                    onDelete={handleDeleteWorkspace}
+                  />
+                ))}
+              </div>
+            </SectionCard>
+
             <SectionCard title="Yleiset" description="Perusasetukset siihen, miten ProjectHub käynnistyy ja käyttäytyy suljettaessa.">
               <SettingRow
                 label="Käynnistä Windowsin käynnistyksen yhteydessä"
                 description="ProjectHub avautuu automaattisesti kun kirjaudut sisään."
               >
                 <Toggle
-                  checked={!!settings.launchAtStartup}
+                  checked={!!draftSettings.launchAtStartup}
                   onChange={(v) => update('launchAtStartup', v)}
                 />
               </SettingRow>
@@ -138,7 +256,7 @@ export default function SettingsPage({ onBack }) {
                 last
               >
                 <Toggle
-                  checked={settings.minimizeToTray !== false}
+                  checked={draftSettings.minimizeToTray !== false}
                   onChange={(v) => update('minimizeToTray', v)}
                 />
               </SettingRow>
@@ -150,7 +268,7 @@ export default function SettingsPage({ onBack }) {
                 description="Sovellus ilmoittaa lähestyvistä ja ylimenneistä tehtävien määräajoista."
               >
                 <Toggle
-                  checked={!!settings.deadlineNotifications}
+                  checked={!!draftSettings.deadlineNotifications}
                   onChange={(v) => update('deadlineNotifications', v)}
                 />
               </SettingRow>
@@ -161,8 +279,8 @@ export default function SettingsPage({ onBack }) {
                 last
               >
                 <select
-                  value={settings.notificationAdvanceHours ?? 24}
-                  disabled={!settings.deadlineNotifications}
+                  value={draftSettings.notificationAdvanceHours ?? 24}
+                  disabled={!draftSettings.deadlineNotifications}
                   onChange={(e) => update('notificationAdvanceHours', Number(e.target.value))}
                   className="input-shell rounded-xl px-3 py-2 text-sm focus:outline-none [color-scheme:dark] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
@@ -205,6 +323,74 @@ export default function SettingsPage({ onBack }) {
               </SettingRow>
             </SectionCard>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WorkspaceRow({ workspace, isActive, canDelete, busy, onRename, onActivate, onDelete }) {
+  const [draftName, setDraftName] = useState(workspace.name)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  useEffect(() => {
+    setDraftName(workspace.name)
+    setConfirmDelete(false)
+  }, [workspace.name])
+
+  const changed = draftName.trim() && draftName.trim() !== workspace.name
+
+  return (
+    <div className="surface-card p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-white truncate">{workspace.name}</p>
+          <p className="text-xs text-slate-500 mt-1">
+            {isActive ? 'Aktiivinen workspace tällä hetkellä.' : 'Erillinen työtila omalla paikallisella datalla.'}
+          </p>
+        </div>
+        <span className={`filter-chip ${isActive ? 'filter-chip--active' : ''}`}>
+          {isActive ? 'Aktiivinen' : 'Workspace'}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <input
+          value={draftName}
+          onChange={(e) => setDraftName(e.target.value)}
+          className="input-shell flex-1 px-3 py-2.5 text-sm outline-none"
+        />
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onRename(workspace.id, draftName.trim())}
+            disabled={!changed || busy}
+            className="secondary-button disabled:opacity-50"
+          >
+            {busy ? 'Tallennetaan…' : 'Tallenna'}
+          </button>
+
+          <button
+            onClick={() => onActivate(workspace.id)}
+            disabled={isActive || busy}
+            className="secondary-button disabled:opacity-50"
+          >
+            Avaa
+          </button>
+
+          <button
+            onClick={() => {
+              if (confirmDelete) {
+                onDelete(workspace.id)
+              } else {
+                setConfirmDelete(true)
+              }
+            }}
+            disabled={!canDelete || busy}
+            className={`secondary-button disabled:opacity-40 ${confirmDelete ? 'border-rose-500/30 bg-rose-500/10 text-rose-200 hover:bg-rose-500/15 hover:text-rose-100' : ''}`}
+          >
+            {confirmDelete ? 'Vahvista poisto' : 'Poista'}
+          </button>
         </div>
       </div>
     </div>

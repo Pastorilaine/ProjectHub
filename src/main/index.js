@@ -6,7 +6,14 @@ import * as db from './database'
 import IPC from '../../shared/ipcChannels'
 import { initAutoUpdater, installUpdate, checkForUpdates } from './updater'
 import { startDeadlineChecker } from './notifications'
-import { getSettings, saveSettings } from './settings'
+import {
+  createWorkspace,
+  deleteWorkspace,
+  getSettings,
+  saveSettings,
+  setActiveWorkspace,
+  updateWorkspace
+} from './settings'
 
 // ── Single-instance lock ───────────────────────────────────────────────────────
 // Prevent multiple instances of the app running at the same time.
@@ -49,6 +56,11 @@ let savedBounds = null
 let isQuitting = false
 let win = null
 let tray = null
+
+function emitWindowState() {
+  if (!win || win.isDestroyed()) return
+  win.webContents.send('window:stateChanged', { maximized: win.isMaximized() })
+}
 
 function saveWindowState() {
   if (!win) return
@@ -109,15 +121,10 @@ function createWindow() {
     minWidth: 1100,
     minHeight: 700,
     show: false,
+    frame: false,
     autoHideMenuBar: true,
     backgroundColor: '#07111F',
     icon: iconPath,
-    titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#07111F',
-      symbolColor: '#94A3B8',
-      height: 48
-    },
     ...(process.platform === 'win32' ? { backgroundMaterial: 'mica' } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -134,6 +141,7 @@ function createWindow() {
     if (state.maximized) {
       win.maximize()
     }
+    emitWindowState()
     win.focus()
   })
 
@@ -144,6 +152,8 @@ function createWindow() {
   win.on('move', () => {
     if (!win.isMaximized() && !win.isMinimized()) savedBounds = win.getBounds()
   })
+  win.on('maximize', emitWindowState)
+  win.on('unmaximize', emitWindowState)
 
   // Minimize to tray on close (if setting enabled) instead of quitting
   win.on('close', (e) => {
@@ -302,6 +312,46 @@ app.whenReady().then(() => {
       app.setLoginItemSettings({ openAtLogin: next.launchAtStartup })
     }
     return next
+  })
+
+  // ── Workspaces ────────────────────────────────────────────────────────────
+  ipcMain.handle(IPC.WORKSPACES_CREATE, (_, data) => {
+    assertTitle(data?.name, 'workspace name')
+    return createWorkspace(data)
+  })
+  ipcMain.handle(IPC.WORKSPACES_UPDATE, (_, data) => {
+    assertUuid(data?.id)
+    assertTitle(data?.name, 'workspace name')
+    return updateWorkspace(data)
+  })
+  ipcMain.handle(IPC.WORKSPACES_DELETE, (_, id) => {
+    assertUuid(id)
+    return deleteWorkspace(id)
+  })
+  ipcMain.handle(IPC.WORKSPACES_SET_ACTIVE, (_, id) => {
+    assertUuid(id)
+    return setActiveWorkspace(id)
+  })
+
+  // ── Window controls ───────────────────────────────────────────────────────
+  ipcMain.handle(IPC.WINDOW_GET_STATE, () => ({ maximized: !!win?.isMaximized() }))
+  ipcMain.handle(IPC.WINDOW_MINIMIZE, () => {
+    win?.minimize()
+    return { success: true }
+  })
+  ipcMain.handle(IPC.WINDOW_TOGGLE_MAXIMIZE, () => {
+    if (!win) return { maximized: false }
+    if (win.isMaximized()) {
+      win.unmaximize()
+    } else {
+      win.maximize()
+    }
+    emitWindowState()
+    return { maximized: win.isMaximized() }
+  })
+  ipcMain.handle(IPC.WINDOW_CLOSE, () => {
+    win?.close()
+    return { success: true }
   })
 
   createWindow()
