@@ -2,6 +2,7 @@
   "name": "projecthub",
   "version": "0.3.8",
   "description": "Local-first project & task management app by IT-Veljekset Group",
+  "license": "MIT",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

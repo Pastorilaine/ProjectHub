@@ -1,5 +1,7 @@
 # ProjectHub
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > Local-first project & task management for Windows — built by [IT-Veljekset Group](https://github.com/Pastorilaine)
 
 ProjectHub is a lightweight desktop application for managing projects and tasks. All data is stored **locally on your device** using SQLite — no accounts, no cloud, no subscriptions required.
@@ -97,4 +99,4 @@ shared/
 
 ## License
 
-© 2026 IT-Veljekset Group. All rights reserved.
+[MIT](LICENSE) © 2026 IT-Veljekset Group
