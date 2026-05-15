@@ -91,7 +91,7 @@ export default function ProjectDetailPage({
       {/* Header */}
       <div
         className="flex-shrink-0 px-6 py-3.5 drag-region"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', paddingRight: '154px' }}
       >
         <div className="flex items-center gap-3 no-drag">
           {/* Breadcrumb */}

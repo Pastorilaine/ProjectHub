@@ -29,7 +29,8 @@ export default function ProjectsPage({ projects, onOpenProject, onNewProject }) 
         style={{
           background: 'rgba(10,15,28,0.92)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)'
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          paddingRight: '154px'
         }}
       >
         <div className="no-drag">

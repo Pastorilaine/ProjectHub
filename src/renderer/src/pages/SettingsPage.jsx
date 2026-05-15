@@ -99,7 +99,7 @@ export default function SettingsPage({ onBack }) {
       {/* Header — drag region */}
       <div
         className="flex-shrink-0 px-8 py-4 flex items-center gap-3 drag-region"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', paddingRight: '154px' }}
       >
         <div className="no-drag flex items-center gap-3 flex-1 min-w-0">
           <button

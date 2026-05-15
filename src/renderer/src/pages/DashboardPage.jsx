@@ -92,7 +92,7 @@ export default function DashboardPage({ onOpenProject, onNewProject }) {
       {/* Header — drag region matching the sidebar header height */}
       <div
         className="flex-shrink-0 px-7 py-4 flex items-center justify-between drag-region"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingRight: '154px' }}
       >
         <div className="no-drag">
           <h1 className="text-lg font-semibold text-white tracking-tight">Yleiskatsaus</h1>
