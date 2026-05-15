@@ -1,6 +1,6 @@
 {
   "name": "projecthub",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Local-first project & task management app by IT-Veljekset Group",
   "main": "out/main/index.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "@hello-pangea/dnd": "^18.0.1",
     "better-sqlite3": "^12.10.0",
+    "electron-log": "^5.4.4",
     "electron-updater": "^6.2.1",
     "uuid": "^10.0.0"
   },

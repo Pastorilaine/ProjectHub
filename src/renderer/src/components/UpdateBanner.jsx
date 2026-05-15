@@ -48,6 +48,11 @@ export default function UpdateBanner() {
 
     const cleanInstallError = window.api.onUpdateInstallError?.((data) => {
       setInfo({ state: 'installError', message: data?.message })
+      autoClose(10000)
+    })
+
+    const cleanError = window.api.onUpdateError?.((data) => {
+      setInfo({ state: 'error', message: data?.message })
       autoClose(8000)
     })
 
@@ -58,6 +63,7 @@ export default function UpdateBanner() {
       cleanProgress?.()
       cleanDownloaded?.()
       cleanInstallError?.()
+      cleanError?.()
       if (clearTimer.current) clearTimeout(clearTimer.current)
     }
   }, [])
@@ -69,7 +75,7 @@ export default function UpdateBanner() {
       className={`flex items-center justify-between px-4 py-2 border-b text-sm flex-shrink-0 transition-colors ${
         info.state === 'notAvailable'
           ? 'bg-green-900/70 border-green-700/60 text-green-100'
-          : info.state === 'installError'
+          : info.state === 'installError' || info.state === 'error'
           ? 'bg-red-900/70 border-red-700/60 text-red-100'
           : 'bg-blue-900/90 border-blue-700/60 text-blue-100'
       }`}
@@ -120,7 +126,13 @@ export default function UpdateBanner() {
 
         {info.state === 'installError' && (
           <span className="truncate">
-            ⚠️ Asennus epäonnistui — käynnistä sovellus uudelleen manuaalisesti asentaaksesi päivityksen
+            ⚠️ Asennus epäonnistui{info.message ? `: ${info.message}` : ''} — katso loki tai asenna manuaalisesti
+          </span>
+        )}
+
+        {info.state === 'error' && (
+          <span className="truncate">
+            ⚠️ Päivitysvirhe{info.message ? `: ${info.message}` : ''}
           </span>
         )}
       </div>

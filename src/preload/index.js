@@ -75,6 +75,11 @@ const api = {
     const fn = (_, data) => cb(data)
     ipcRenderer.on('update:installError', fn)
     return () => ipcRenderer.removeListener('update:installError', fn)
+  },
+  onUpdateError: (cb) => {
+    const fn = (_, data) => cb(data)
+    ipcRenderer.on('update:error', fn)
+    return () => ipcRenderer.removeListener('update:error', fn)
   }
 }
 
