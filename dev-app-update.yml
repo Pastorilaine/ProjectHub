@@ -1,0 +1,15 @@
+# Used by updater.js when DEV_UPDATER_ENABLED=true
+# Points electron-updater at the real GitHub repo so the fetch/download/install
+# chain can be exercised against a draft / pre-release before going public.
+#
+# Usage (PowerShell):
+#   $env:DEV_UPDATER_ENABLED = "true"
+#   npm run preview         ← packaged-app preview mode, not the real renderer-only dev server
+#
+# electron-updater will load this file and check for a newer tag on GitHub.
+# Make sure GH_TOKEN is set so private/draft releases are visible.
+
+provider: github
+owner: Pastorilaine
+repo: ProjectHub
+updaterCacheDirName: projecthub-updater

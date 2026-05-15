@@ -154,6 +154,22 @@ app.on('before-quit', () => {
   isQuitting = true
 })
 
+// ── IPC validation helpers ─────────────────────────────────────────────────────
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const VALID_STATUSES = new Set(['todo', 'in_progress', 'done'])
+
+function assertUuid(value, name = 'id') {
+  if (typeof value !== 'string' || !UUID_RE.test(value)) {
+    throw new Error(`Invalid ${name}: expected UUID`)
+  }
+}
+
+function assertTitle(value, name = 'title') {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`Invalid ${name}: must be a non-empty string`)
+  }
+}
+
 // ── App lifecycle ──────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('fi.it-veljekset.projecthub')
@@ -164,16 +180,44 @@ app.whenReady().then(() => {
 
   // ── Projects ──────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.PROJECTS_GET_ALL, () => db.getAllProjects())
-  ipcMain.handle(IPC.PROJECTS_CREATE, (_, data) => db.createProject(data))
-  ipcMain.handle(IPC.PROJECTS_UPDATE, (_, data) => db.updateProject(data))
-  ipcMain.handle(IPC.PROJECTS_DELETE, (_, id) => db.deleteProject(id))
+  ipcMain.handle(IPC.PROJECTS_CREATE, (_, data) => {
+    assertTitle(data?.name, 'name')
+    return db.createProject(data)
+  })
+  ipcMain.handle(IPC.PROJECTS_UPDATE, (_, data) => {
+    assertUuid(data?.id)
+    assertTitle(data?.name, 'name')
+    return db.updateProject(data)
+  })
+  ipcMain.handle(IPC.PROJECTS_DELETE, (_, id) => {
+    assertUuid(id)
+    return db.deleteProject(id)
+  })
 
   // ── Tasks ─────────────────────────────────────────────────────────────────
-  ipcMain.handle(IPC.TASKS_GET_BY_PROJECT, (_, projectId) => db.getTasksByProject(projectId))
-  ipcMain.handle(IPC.TASKS_CREATE, (_, data) => db.createTask(data))
-  ipcMain.handle(IPC.TASKS_UPDATE, (_, data) => db.updateTask(data))
-  ipcMain.handle(IPC.TASKS_DELETE, (_, id) => db.deleteTask(id))
-  ipcMain.handle(IPC.TASKS_UPDATE_STATUS, (_, { id, status }) => db.updateTaskStatus(id, status))
+  ipcMain.handle(IPC.TASKS_GET_BY_PROJECT, (_, projectId) => {
+    assertUuid(projectId, 'projectId')
+    return db.getTasksByProject(projectId)
+  })
+  ipcMain.handle(IPC.TASKS_CREATE, (_, data) => {
+    assertUuid(data?.projectId, 'projectId')
+    assertTitle(data?.title)
+    return db.createTask(data)
+  })
+  ipcMain.handle(IPC.TASKS_UPDATE, (_, data) => {
+    assertUuid(data?.id)
+    assertTitle(data?.title)
+    return db.updateTask(data)
+  })
+  ipcMain.handle(IPC.TASKS_DELETE, (_, id) => {
+    assertUuid(id)
+    return db.deleteTask(id)
+  })
+  ipcMain.handle(IPC.TASKS_UPDATE_STATUS, (_, { id, status }) => {
+    assertUuid(id)
+    if (!VALID_STATUSES.has(status)) throw new Error(`Invalid status: ${status}`)
+    return db.updateTaskStatus(id, status)
+  })
 
   // ── Tags ──────────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.TAGS_GET_ALL, () => db.getAllTags())

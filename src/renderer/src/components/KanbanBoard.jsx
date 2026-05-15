@@ -77,7 +77,7 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
 
     // Optimistic update: move the task in local state immediately
     setLocalTasks((prev) => {
-      const task = prev.find((t) => t.id === Number(draggableId))
+      const task = prev.find((t) => t.id === draggableId)
       if (!task) return prev
       const updatedTask = { ...task, status: newStatus }
       const withoutTask = prev.filter((t) => t.id !== draggableId)
@@ -91,7 +91,7 @@ export default function KanbanBoard({ projectId, tasks, tags, onTasksChanged, on
     // Persist status change to DB when dropping into a different column
     if (source.droppableId !== destination.droppableId) {
       try {
-        const updated = await window.api.updateTaskStatus(Number(draggableId), newStatus)
+        const updated = await window.api.updateTaskStatus(draggableId, newStatus)
         const updater = (prev) =>
           prev.map((t) => (t.id === draggableId ? { ...updated, tags: t.tags } : t))
         setLocalTasks(updater)

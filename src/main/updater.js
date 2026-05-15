@@ -9,6 +9,7 @@
 
 import { autoUpdater } from 'electron-updater'
 import { app } from 'electron'
+import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 
 let mainWindow = null
@@ -17,9 +18,18 @@ let ready = false  // true once initAutoUpdater has run in a packaged app
 export function initAutoUpdater(win) {
   mainWindow = win
 
-  if (is.dev) {
-    console.log('[updater] Dev mode — auto-updater disabled')
+  const devOverride = process.env['DEV_UPDATER_ENABLED'] === 'true'
+
+  if (is.dev && !devOverride) {
+    console.log('[updater] Dev mode — auto-updater disabled (set DEV_UPDATER_ENABLED=true to override)')
     return
+  }
+
+  if (devOverride) {
+    // Point at the local yaml so the full fetch/download chain can be tested
+    // without a packaged build. Must be run via `npm run preview`.
+    autoUpdater.updateConfigPath = join(app.getAppPath(), '../../dev-app-update.yml')
+    console.log('[updater] DEV_UPDATER_ENABLED — using dev-app-update.yml')
   }
 
   ready = true
@@ -27,6 +37,8 @@ export function initAutoUpdater(win) {
   // Download silently in the background; don't show the default dialog
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
+  // Prevent the web-based delta-installer path — we use the full NSIS installer
+  autoUpdater.disableWebInstaller = true
 
   autoUpdater.on('checking-for-update', () => {
     console.log('[updater] Checking for update…')
