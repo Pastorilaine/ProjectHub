@@ -134,29 +134,32 @@ export default function IdeaLibraryPage({ projects }) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-8 pt-8 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)' }}
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h1 className="text-xl font-semibold text-white">Ideakirjasto</h1>
+      <div
+        className="flex-shrink-0 px-7 py-3 drag-region"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingRight: '154px' }}
+      >
+        {/* Title row */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="no-drag flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)' }}
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
             </div>
-            <p className="text-sm text-slate-500 pl-11">
-              {ideas.length} {ideas.length === 1 ? 'idea' : 'ideaa'} tallennettuna
-            </p>
+            <div>
+              <h1 className="text-lg font-semibold text-white tracking-tight">Ideakirjasto</h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {ideas.length} {ideas.length === 1 ? 'idea' : 'ideaa'} tallennettuna
+              </p>
+            </div>
           </div>
-
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all hover:opacity-90 flex-shrink-0"
+            className="no-drag flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95 flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)' }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,9 +170,9 @@ export default function IdeaLibraryPage({ projects }) {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3 mt-5 flex-wrap">
+        <div className="no-drag flex items-center gap-3 flex-wrap">
           {/* Search */}
-          <div className="relative flex-1 min-w-48 max-w-72">
+          <div className="relative flex-1 min-w-40 max-w-64">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -178,7 +181,7 @@ export default function IdeaLibraryPage({ projects }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Hae ideoita..."
-              className="w-full pl-8 pr-3 py-2 text-sm text-slate-300 rounded-lg placeholder-slate-600 outline-none focus:ring-1 focus:ring-amber-500/40"
+              className="w-full pl-8 pr-3 py-1.5 text-sm text-slate-300 rounded-lg placeholder-slate-600 outline-none focus:ring-1 focus:ring-amber-500/40"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
             />
           </div>
