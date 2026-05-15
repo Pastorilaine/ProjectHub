@@ -99,4 +99,4 @@ shared/
 
 ## License
 
-[MIT](LICENSE) © 2026 IT-Veljekset Group
+[MIT](LICENSE) © 2026 Pastorilaine / IT-Veljekset Group
