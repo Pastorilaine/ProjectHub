@@ -4,12 +4,13 @@ import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import IdeaLibraryPage from './pages/IdeaLibraryPage'
 import SearchModal from './components/SearchModal'
 import CreateProjectModal from './components/CreateProjectModal'
 import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
-  const [view, setView] = useState('dashboard') // 'dashboard' | 'projects' | 'project-detail' | 'settings'
+  const [view, setView] = useState('dashboard') // 'dashboard' | 'projects' | 'project-detail' | 'settings' | 'ideas'
   const [projects, setProjects] = useState([])
   const [selectedProject, setSelectedProject] = useState(null)
   const [tags, setTags] = useState([])
@@ -76,6 +77,11 @@ export default function App() {
     loadProjects()
   }
 
+  const goIdeas = () => {
+    setView('ideas')
+    setSelectedProject(null)
+  }
+
   const handleProjectCreated = async (project) => {
     await loadProjects()
     setShowCreateProject(false)
@@ -125,6 +131,7 @@ export default function App() {
           onNewProject={() => setShowCreateProject(true)}
           onOpenSettings={() => setView('settings')}
           onOpenProjects={goHome}
+          onOpenIdeas={goIdeas}
           activeView={view}
         />
 
@@ -155,6 +162,9 @@ export default function App() {
           )}
           {view === 'settings' && (
             <SettingsPage onBack={goDashboard} />
+          )}
+          {view === 'ideas' && (
+            <IdeaLibraryPage projects={projects} />
           )}
         </main>
       </div>

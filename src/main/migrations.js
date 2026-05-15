@@ -14,6 +14,23 @@ const MIGRATIONS = [
     version: 2,
     description: 'Add notes column to projects',
     sql: `ALTER TABLE projects ADD COLUMN notes TEXT;`
+  },
+  {
+    version: 3,
+    description: 'Create ideas table for idea library',
+    sql: `
+      CREATE TABLE IF NOT EXISTS ideas (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT,
+        category TEXT DEFAULT 'general',
+        status TEXT DEFAULT 'raw',
+        priority TEXT DEFAULT 'medium',
+        linked_project_id TEXT REFERENCES projects(id) ON DELETE SET NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    `
   }
 ]
 

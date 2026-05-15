@@ -317,7 +317,75 @@ export function getUpcomingDeadlineTasks(hours = 24) {
     .all(now - windowMs, now + windowMs)
 }
 
-export {
+// ── Ideas ─────────────────────────────────────────────────────────────────────
+
+const VALID_IDEA_STATUSES = new Set(['raw', 'refined', 'implemented'])
+const VALID_IDEA_PRIORITIES = new Set(['low', 'medium', 'high'])
+const VALID_IDEA_CATEGORIES = new Set(['general', 'feature', 'improvement', 'bug', 'research', 'other'])
+
+function getIdeaById(id) {
+  const idea = getDb().prepare('SELECT * FROM ideas WHERE id = ?').get(id)
+  if (!idea) return null
+  if (idea.linked_project_id) {
+    const proj = getDb().prepare('SELECT id, name, color FROM projects WHERE id = ?').get(idea.linked_project_id)
+    idea.linked_project = proj || null
+  } else {
+    idea.linked_project = null
+  }
+  return idea
+}
+
+function getAllIdeas() {
+  const ideas = getDb().prepare(`
+    SELECT i.*, p.name AS linked_project_name, p.color AS linked_project_color
+    FROM ideas i
+    LEFT JOIN projects p ON p.id = i.linked_project_id
+    ORDER BY
+      CASE i.priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+      i.updated_at DESC
+  `).all()
+  return ideas
+}
+
+function createIdea({ title, content, category, status, priority, linkedProjectId }) {
+  const now = Date.now()
+  const id = uuidv4()
+  const cat = VALID_IDEA_CATEGORIES.has(category) ? category : 'general'
+  const sta = VALID_IDEA_STATUSES.has(status) ? status : 'raw'
+  const pri = VALID_IDEA_PRIORITIES.has(priority) ? priority : 'medium'
+  getDb().prepare(`
+    INSERT INTO ideas (id, title, content, category, status, priority, linked_project_id, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, title.trim(), content || null, cat, sta, pri, linkedProjectId || null, now, now)
+  return getIdeaById(id)
+}
+
+function updateIdea({ id, title, content, category, status, priority, linkedProjectId }) {
+  const now = Date.now()
+  const cat = VALID_IDEA_CATEGORIES.has(category) ? category : 'general'
+  const sta = VALID_IDEA_STATUSES.has(status) ? status : 'raw'
+  const pri = VALID_IDEA_PRIORITIES.has(priority) ? priority : 'medium'
+  getDb().prepare(`
+    UPDATE ideas
+    SET title = ?, content = ?, category = ?, status = ?, priority = ?, linked_project_id = ?, updated_at = ?
+    WHERE id = ?
+  `).run(title.trim(), content || null, cat, sta, pri, linkedProjectId || null, now, id)
+  return getIdeaById(id)
+}
+
+function deleteIdea(id) {
+  getDb().prepare('DELETE FROM ideas WHERE id = ?').run(id)
+  return { success: true }
+}
+
+function updateIdeaStatus(id, status) {
+  if (!VALID_IDEA_STATUSES.has(status)) throw new Error(`Invalid idea status: ${status}`)
+  const now = Date.now()
+  getDb().prepare('UPDATE ideas SET status = ?, updated_at = ? WHERE id = ?').run(status, now, id)
+  return getIdeaById(id)
+}
+
+
   getAllProjects,
   createProject,
   updateProject,
@@ -330,5 +398,11 @@ export {
   getAllTags,
   createTag,
   deleteTag,
-  search
+  search,
+  // Ideas
+  getAllIdeas,
+  createIdea,
+  updateIdea,
+  deleteIdea,
+  updateIdeaStatus
 }

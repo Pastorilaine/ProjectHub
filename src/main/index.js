@@ -253,6 +253,28 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.SEARCH, (_, query) => db.search(query))
   // ── Dashboard ─────────────────────────────────────────────────────────────
   ipcMain.handle(IPC.DASHBOARD_STATS, () => db.getDashboardStats())
+
+  // ── Ideas ─────────────────────────────────────────────────────────────────
+  const VALID_IDEA_STATUSES = new Set(['raw', 'refined', 'implemented'])
+  ipcMain.handle(IPC.IDEAS_GET_ALL, () => db.getAllIdeas())
+  ipcMain.handle(IPC.IDEAS_CREATE, (_, data) => {
+    assertTitle(data?.title)
+    return db.createIdea(data)
+  })
+  ipcMain.handle(IPC.IDEAS_UPDATE, (_, data) => {
+    assertUuid(data?.id)
+    assertTitle(data?.title)
+    return db.updateIdea(data)
+  })
+  ipcMain.handle(IPC.IDEAS_DELETE, (_, id) => {
+    assertUuid(id)
+    return db.deleteIdea(id)
+  })
+  ipcMain.handle(IPC.IDEAS_UPDATE_STATUS, (_, { id, status }) => {
+    assertUuid(id)
+    if (!VALID_IDEA_STATUSES.has(status)) throw new Error(`Invalid idea status: ${status}`)
+    return db.updateIdeaStatus(id, status)
+  })
   // ── Auto-updater ──────────────────────────────────────────────────────────
   // Hand the updater a "prepare to quit" callback so it cleans up the tray
   // ONLY when the install actually starts (not if it fails before that).

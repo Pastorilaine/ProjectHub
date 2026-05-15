@@ -34,6 +34,13 @@ const IPC = {
   // Dashboard
   DASHBOARD_STATS: 'db:dashboard:stats',
 
+  // Ideas
+  IDEAS_GET_ALL: 'db:ideas:getAll',
+  IDEAS_CREATE: 'db:ideas:create',
+  IDEAS_UPDATE: 'db:ideas:update',
+  IDEAS_DELETE: 'db:ideas:delete',
+  IDEAS_UPDATE_STATUS: 'db:ideas:updateStatus',
+
   // User settings
   SETTINGS_GET: 'app:settings:get',
   SETTINGS_SAVE: 'app:settings:save'

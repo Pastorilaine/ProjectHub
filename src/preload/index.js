@@ -31,6 +31,13 @@ const api = {
   // Dashboard
   getDashboardStats: () => ipcRenderer.invoke(IPC.DASHBOARD_STATS),
 
+  // Ideas
+  getIdeas: () => ipcRenderer.invoke(IPC.IDEAS_GET_ALL),
+  createIdea: (data) => ipcRenderer.invoke(IPC.IDEAS_CREATE, data),
+  updateIdea: (data) => ipcRenderer.invoke(IPC.IDEAS_UPDATE, data),
+  deleteIdea: (id) => ipcRenderer.invoke(IPC.IDEAS_DELETE, id),
+  updateIdeaStatus: (id, status) => ipcRenderer.invoke(IPC.IDEAS_UPDATE_STATUS, { id, status }),
+
   // Auto-updater — install the downloaded update
   installUpdate: () => ipcRenderer.invoke(IPC.UPDATE_INSTALL),
 
