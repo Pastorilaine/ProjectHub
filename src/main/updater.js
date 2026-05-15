@@ -51,6 +51,10 @@ export function initAutoUpdater(win) {
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = false
   autoUpdater.disableWebInstaller = true
+  // App is not code-signed — bypass the Windows Authenticode verification that
+  // electron-updater runs against publisherName. Without this, the update fails
+  // with "not digitally signed" even though the file downloaded correctly.
+  autoUpdater.verifyUpdateCodeSignature = () => Promise.resolve(null)
 
   autoUpdater.on('checking-for-update', () => {
     log.info('[updater] Checking for update…')
@@ -125,10 +129,9 @@ export function installUpdate(prepareForQuit) {
   setImmediate(() => {
     try {
       if (typeof prepareForQuit === 'function') prepareForQuit()
-      // With NSIS oneClick: false, the installer wizard ALWAYS shows UI.
-      // isSilent=true is only valid for oneClick installers — pass false here.
-      // isForceRunAfter=true → relaunches the app after the user finishes the wizard.
-      autoUpdater.quitAndInstall(false, true)
+      // isSilent=true → runs NSIS with /S flag, no installer wizard.
+      // isForceRunAfter=true → relaunches the app after install completes.
+      autoUpdater.quitAndInstall(true, true)
     } catch (err) {
       log.error('[updater] quitAndInstall failed:', err?.message, err?.stack)
       installStarted = false
